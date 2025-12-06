@@ -23,7 +23,7 @@ export class FitToCamera implements Component{
         this.updateLocalTransform();
     }
 
-    update(dt: number): void {
+    update(_dt: number): void {
 
     }
 

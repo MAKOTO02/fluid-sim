@@ -13,7 +13,7 @@ export class MeshFilter implements Component{
     // とくに何もしない想定だが、後で差し替えてもOK
     }
 
-    update(dt: number): void {
+    update(_dt: number): void {
         // MeshFilter 自体は毎フレームすることはないので空でOK
     }
 

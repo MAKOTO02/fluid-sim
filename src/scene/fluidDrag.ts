@@ -32,7 +32,7 @@ export class FluidDrag implements Component{
         this.tryCacheRb();
     }
 
-    update(dt: number): void{
+    update(_dt: number): void{
         if(!this.enabled || !this.owner) return;
         const cam = this.scene.MainCamera;
         if(!cam) return;

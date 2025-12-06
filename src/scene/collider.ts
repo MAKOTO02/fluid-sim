@@ -37,7 +37,7 @@ export class SphereCollider implements Collider {
   }
 
   start(): void {}
-  update(dt: number): void {}
+  update(_dt: number): void {}
   onAttach?(): void {
     this.scene.collisionSystem.add(this);
   }

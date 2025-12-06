@@ -44,6 +44,8 @@ import { LocalPathMover, makeStraightPath } from "./scene/projectileLocalPath";
 import { ScreenBoundsLimiter } from "./scene/screenBoundsLimiter";
 import { Enemy } from "./scene/enemy";
 import { setupEnemyStrategyFactories } from "./scene/enemyStrategy";
+import { createGameMaterials, createGamePrograms } from "./scene/gameAssets";
+import { setupEnemyConfigs } from "./scene/enemyConfig";
 
 const canvas = document.querySelector("canvas")!;
 const dpr = window.devicePixelRatio || 1;
@@ -60,6 +62,10 @@ if(!gl) throw new Error("WebGL RenderingContext が見つかりません.");
 
 // プログラム準備
 const shaderLib = new ShaderLibrary(gl);
+const programs = createGamePrograms(shaderLib);
+const materials = createGameMaterials(programs);
+setupEnemyConfigs(materials);
+
 
 const unlitColorProgram = shaderLib.load("UnlitColor", sceneVert, UnlitColorFrag);
 const obstacleColor = vec4.fromValues(1, 0, 0, 0);
@@ -125,7 +131,7 @@ function bakeBulletVectorField(
 
   prog.bind();
   const locStrength = prog.uniforms.get("uStrength");
-  if (locStrength) gl.uniform1f(locStrength, 0.0005);
+  if (locStrength) gl.uniform1f(locStrength, 0.0003);
 
   blit(fbo);
 
@@ -159,7 +165,7 @@ const fluidShaders = {
 
 const fluidConfig = {
   CURL: 30,
-  GRAVITY: 20,
+  GRAVITY: 0,
   PRESSURE: 0.8,
   PRESSURE_ITERATIONS: 20,
   VELOCITY_DISSIPATION: 0.2,
@@ -259,14 +265,13 @@ const obstacle = new GameObject("obstacle");
 obstacle.layer = layers.obstacle;
 obstacle.addComponent(new MeshFilter(quadMesh));
 obstacle.addComponent(new MeshRenderer(gl, obstacleMaterial));
-//obstacle.transform.rotate(Math.PI/4, vec3.fromValues(0, 1, 0));
 obstacle.transform.setScale(vec3.fromValues(0.5, 0.5, 0.5));
 obstacle.transform.translate(vec3.fromValues(-2, -1.5, 0));
 
 scene.addObject(obstacle);
 
 //stream
-const streamMesh = createQuad(2);
+const streamMesh = createQuad(9);
 const streamObj = new GameObject("stream");
 const streamTexMaterial = new UnlitTextureMaterial(unlitTexProgram, bulletStreamTexture);
 streamObj.addComponent(new MeshFilter(streamMesh));
@@ -275,11 +280,9 @@ streamObj.layer = layers.stream;
 streamObj.transform.translate(vec3.fromValues(0, 0, 0));
 scene.addObject(streamObj);
 
-const playerColor = vec4.fromValues(1, 0.8, 0.8, 0);
-const playerMaterial = new UnlitColorMaterial(unlitColorProgram, playerColor);
 const player = createSphereActor(gl, scene, {
   radius: 0.05,
-  material: playerMaterial,
+  material: materials.player,
   layer: "player",
   hitScale: 0.3,
   name: "Player",
@@ -307,29 +310,25 @@ player.transform.translate(vec3.fromValues(-2, -1.5, 0));
 scene.addObject(emitter);
 
 // enemy
-const center = new GameObject();
-scene.addObject(center);
-const enemyR = 0.07;
-const enemy = createSphereActor(
-  gl, scene,
-  {
-    radius: enemyR,
-    material: playerMaterial,
-    layer: "enemy",
-    name: "Enemy"
-  }
-)
-enemy.transform.setParent(center.transform);
+const enemyCenter = new GameObject();
+enemyCenter.transform.translate(vec3.fromValues(1, 1, 0));
+scene.addObject(enemyCenter);
+const enemy = new GameObject("Enemy");
+enemy.transform.setParent(enemyCenter.transform);
 enemy.addComponent(new LocalPathMover(t => {return {x: Math.cos(t), y: Math.sin(t), z: 0}}))
 const ctx = {
   gl: gl,
   scene: scene,
   canvas: canvas,
-  material: playerMaterial,
+  material: materials.player,
   fluid: fluidSim
 };
 setupEnemyStrategyFactories(ctx);
-enemy.addComponent(new Enemy(0, ctx)).setTarget(player.transform);
+const enemyComp = new Enemy(0, ctx);
+enemyComp.setTarget(player.transform);
+enemy.addComponent(enemyComp);
+enemyComp.createVisual(gl, scene);
+scene.addObject(enemy);
 
 // ループ
 let last = performance.now();
@@ -370,6 +369,7 @@ function loop(now: number) {
 
     renderer.render(scene, cam, obstacleTarget);
 
+    // stream の準備.
     const streamTraget = fluidSim.getStreamTarget();
     cam.cullingMask = layers.stream;
     renderer.render(scene, cam, streamTraget);
@@ -420,7 +420,7 @@ canvas.addEventListener("click", (e) => {
 
   const bullet = createProjectileSphereLocal(gl, scene, {
     radius: 0.04,
-    material: playerMaterial,
+    material: materials.player,
     colliderLayer: "bullet",
     hitLayers: ["enemy"],
     lifeSec: 5.0,

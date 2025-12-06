@@ -65,7 +65,7 @@ export class CameraComponent implements Component {
     // 今のところ特に何もしなくてもOK
   }
 
-  update(dt: number): void {
+  update(_dt: number): void {
     // ここで自動移動などしたければ dt を使う
     // 今は Transform を外からいじる前提なので、とりあえず行列だけ更新
     this.updateMatrices();

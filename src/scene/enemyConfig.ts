@@ -14,6 +14,8 @@ import {
   type IEnemyStrategy,
 } from "./enemyStrategy";
 import { DirectionUtil } from "./directionUtil";
+import { sphereEnemyVisual, type EnemyVisualFactory } from "./enemyVisual";
+import type { GameMaterials } from "./gameAssets";
 
 export type FireContext = {
   gl: WebGLRenderingContext | WebGL2RenderingContext;
@@ -24,7 +26,11 @@ export type FireContext = {
 };
 
 export type EnemyConfig = {
+  id: number,
   hitPoint: number;
+  materialKey: keyof GameMaterials
+  material?: IMaterial;              // ★ここに紐付け
+  visual: EnemyVisualFactory;
   getBulletSource: (enemy: Enemy) => Transform;
   fire: (ctx: FireContext, enemy: Enemy) => void;
   createStrategy?: (ctx: FireContext) => IEnemyStrategy;
@@ -33,7 +39,10 @@ export type EnemyConfig = {
 export const enemyConfigs = new Map<number, EnemyConfig>();
 
 const simpleEnemyConfig: EnemyConfig = {
+  id: 0,
   hitPoint: 10,
+  visual: sphereEnemyVisual,
+  materialKey: "enemySmall",
 
   getBulletSource(enemy) {
     const owner = enemy.owner;
@@ -42,7 +51,6 @@ const simpleEnemyConfig: EnemyConfig = {
   },
 
   fire(ctx, enemy) {
-    
     const speed = 3.0;
     const count = 5;
     const spreadDeg = 60;
@@ -75,11 +83,13 @@ const simpleEnemyConfig: EnemyConfig = {
             hitLayers: ["player", "wall"],
             localPath: path,
             lifeSec: 10,
+            
             fluid: {
                 enabled: true,
                 fluidSim: ctx.fluid,
                 canvas: ctx.canvas,
             },
+            
         });
 
         // ★ なるべく enemy.config 経由で参照しておくと汎用性が高い
@@ -102,4 +112,8 @@ const simpleEnemyConfig: EnemyConfig = {
   },
 };
 
-enemyConfigs.set(0, simpleEnemyConfig);
+export function setupEnemyConfigs(materials: GameMaterials) {
+  const cfg = { ...simpleEnemyConfig, material: materials.enemySmall };
+  enemyConfigs.set(cfg.id, cfg);
+}
+

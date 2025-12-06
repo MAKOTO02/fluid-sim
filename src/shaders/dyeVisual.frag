@@ -32,7 +32,7 @@ void main() {
 
     // ★ 彩度・明るさをかなり抑える
     float sat = mix(0.1, 0.3, vMag);   // 0.1〜0.3
-    float val = mix(0.3, 0.8, vMag);   // 0.3〜0.8
+    float val = mix(0.3, 0.5, vMag);   // 0.3〜0.5
 
     vec3 velColor = hsv2rgb(vec3(hue, sat, val));
 

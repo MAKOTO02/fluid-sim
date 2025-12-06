@@ -12,7 +12,7 @@ export class CollisionSystem {
   }
 
   // 毎フレーム呼ぶ
-  update(dt: number) {
+  update(_dt: number) {
     const n = this.colliders.length;
     for (let i = 0; i < n; i++) {
       const a = this.colliders[i];
@@ -47,7 +47,7 @@ export class CollisionSystem {
     }
   }
 
-  private shouldCollide(a: SphereCollider, b: SphereCollider): boolean {
+  private shouldCollide(_a: SphereCollider, _b: SphereCollider): boolean {
     // ここで layer 組合せを見て、「player vs enemyBullet は衝突させるけど
     // playerBullet vs player は無視」みたいなルールを入れられる
     return true;

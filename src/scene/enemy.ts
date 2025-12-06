@@ -6,6 +6,7 @@ import { Projectile } from "./projectile";
 import { type EnemyConfig, enemyConfigs, type FireContext} from "./enemyConfig";
 import { type IEnemyStrategy, defaultEnemyStrategy } from "./enemyStrategy";
 import type { Transform } from "./transform";
+import type { Scene } from "./scene";
 
 export const EnemyStates = {
   Default: "default",
@@ -95,6 +96,12 @@ export class Enemy implements Component {
   kill(): void{
     this.state = "dead";
     console.log(`${this.name} is killed.`);
+  }
+
+  createVisual(gl: WebGLRenderingContext | WebGL2RenderingContext, scene: Scene){
+    if(this.owner) {
+        this.config.visual(gl, scene, this.owner, this.config);
+    }
   }
 }
 

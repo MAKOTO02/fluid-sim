@@ -37,7 +37,7 @@ export function setupEnemyStrategyFactories(ctx: FireContext) {
 
 // default は「死んでたら destroy するだけ」のシンプルなやつ
 export const defaultEnemyStrategy: IEnemyStrategy = {
-  update(enemy, dt) {
+  update(enemy, _dt) {
     if (enemy.State === EnemyStates.Dead) {
       enemy.owner?.destroy();
     }

@@ -42,7 +42,7 @@ export class MeshRenderer implements Component{
         this.initBuffers(meshFilter.mesh);
     }
 
-    update(dt: number): void{
+    update(_dt: number): void{
         // 何かする?
     }
 

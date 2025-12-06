@@ -3,7 +3,6 @@ import type { Component } from "./component";
 import type { GameObject } from "./gameObject";
 import type { Scene } from "./scene";
 import { RigidBody } from "./rigidBody";
-import { vec3 } from "gl-matrix";
 
 export class ScreenBoundsLimiter implements Component {
   enabled = true;
@@ -22,7 +21,7 @@ export class ScreenBoundsLimiter implements Component {
 
   start(): void {}
 
-  update(dt: number): void {
+  update(_dt: number): void {
     if (!this.enabled || !this.owner) return;
     const cam = this.scene.MainCamera;
     if (!cam) return;
