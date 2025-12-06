@@ -1,4 +1,4 @@
-type GLFormat = {
+export type GLFormat = {
   internalFormat: number;
   format: number;
 };
