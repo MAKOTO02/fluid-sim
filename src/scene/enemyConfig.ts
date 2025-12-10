@@ -83,13 +83,13 @@ const simpleEnemyConfig: EnemyConfig = {
             hitLayers: ["player", "wall"],
             localPath: path,
             lifeSec: 10,
-            
+            /*
             fluid: {
                 enabled: true,
                 fluidSim: ctx.fluid,
                 canvas: ctx.canvas,
             },
-            
+            */
         });
 
         // ★ なるべく enemy.config 経由で参照しておくと汎用性が高い

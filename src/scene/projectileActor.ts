@@ -146,7 +146,7 @@ export function createProjectileSphereLocal(
     const {
       fluidSim,
       canvas,
-      strength = 100.0,
+      strength = 10.0,
       color = { r: 0.5, g: 0.1, b: 0.1 },
     } = opts.fluid;
 

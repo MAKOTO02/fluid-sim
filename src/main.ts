@@ -187,9 +187,9 @@ function getResolution (resolution: number) {
     return { width: min, height: max };
 }
 
-const resolution = 512;
+const resolution = 256;
 let simRes = getResolution(resolution);
-const dyeResolution = 2048;
+const dyeResolution = 1024;
 let dyeRes = getResolution(dyeResolution);
 
 const resolver = new FluidFormatResolver(gl, ext);
@@ -330,6 +330,28 @@ enemy.addComponent(enemyComp);
 enemyComp.createVisual(gl, scene);
 scene.addObject(enemy);
 
+// 初期化
+function init(){
+  scene.update(0);
+  const cam = scene.MainCamera;
+  if(cam){
+    const prevMask = cam.cullingMask;
+    const obstacleTarget = fluidSim.getObstacleTarget();
+    cam.cullingMask = layers.obstacle;
+
+    const prevFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
+    const prevViewport = gl.getParameter(gl.VIEWPORT);
+
+    renderer.render(scene, cam, obstacleTarget);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, prevFbo);
+    gl.viewport(prevViewport[0], prevViewport[1], prevViewport[2], prevViewport[3]);
+    cam.cullingMask = prevMask;
+  }
+}
+
+init();
+
 // ループ
 let last = performance.now();
 function loop(now: number) {
@@ -353,21 +375,16 @@ function loop(now: number) {
     fluidSim.resize(w, h); // ← この中で FBO をリサイズする実装にする
 
     fitter.updateLocalTransform();
+    init();
   }
 
   scene.update(dt);
 
-  // obstacleの準備.
   const cam = scene.MainCamera;
   if(cam){
     const prevMask = cam.cullingMask;
-    const obstacleTarget = fluidSim.getObstacleTarget();
-    cam.cullingMask = layers.obstacle;
-
     const prevFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
     const prevViewport = gl.getParameter(gl.VIEWPORT);
-
-    renderer.render(scene, cam, obstacleTarget);
 
     // stream の準備.
     const streamTraget = fluidSim.getStreamTarget();
