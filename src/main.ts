@@ -167,7 +167,7 @@ const fluidConfig = {
   CURL: 30,
   GRAVITY: 0,
   PRESSURE: 0.8,
-  PRESSURE_ITERATIONS: 20,
+  PRESSURE_ITERATIONS: 15,
   VELOCITY_DISSIPATION: 0.2,
   DENSITY_DISSIPATION: 2.2,
   SPLAT_RADIUS: 0.01,
@@ -354,6 +354,8 @@ init();
 
 // ループ
 let last = performance.now();
+let fluidTimer = 0;
+const fps = 30;
 function loop(now: number) {
   let dt = (now - last) / 1000;
   last = now;
@@ -382,6 +384,10 @@ function loop(now: number) {
 
   const cam = scene.MainCamera;
   if(cam){
+    fluidTimer += dt;
+    if(fluidTimer < 1 / fps){
+      renderer.render(scene, cam);
+    }
     const prevMask = cam.cullingMask;
     const prevFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
     const prevViewport = gl.getParameter(gl.VIEWPORT);
