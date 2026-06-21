@@ -3,7 +3,7 @@ import type { Component } from "./component";
 import type { Scene } from "./scene";
 import { vec3 } from "gl-matrix";
 
-// t -> 相対UV(du, dv) を返す関数
+// Function from time to relative UV offset (du, dv).
 export type UVPathFunc = (t: number) => { u: number; v: number };
 
 export class ProjectileUVPath implements Component {
@@ -11,9 +11,9 @@ export class ProjectileUVPath implements Component {
   owner?: GameObject;
 
   private scene: Scene;
-  private originUV: { u: number; v: number };   // 基準UV（発射位置）
-  private offsetUV: { u: number; v: number };   // 発射時オフセット
-  private path: UVPathFunc;                     // 相対軌道（du,dv）
+  private originUV: { u: number; v: number };   // Base UV at spawn.
+  private offsetUV: { u: number; v: number };   // Spawn-time offset.
+  private path: UVPathFunc;                     // Relative path (du, dv).
   private time = 0;
   private zPlane: number;
 
@@ -55,10 +55,10 @@ export class ProjectileUVPath implements Component {
 
     this.time += dt;
 
-    // 相対軌道 (du, dv) を取得
-    const rel = this.path(this.time); // { u: du, v: dv }
+    // Get the relative path offset.
+    const rel = this.path(this.time);
 
-    // 最終的なUV = origin + offset + relative
+    // Final UV = origin + offset + relative.
     const u = this.originUV.u + this.offsetUV.u + rel.u;
     const v = this.originUV.v + this.offsetUV.v + rel.v;
 
@@ -66,17 +66,17 @@ export class ProjectileUVPath implements Component {
     if (!currWorld) return;
 
     if (this.prevWorld == null) {
-      // 初回：スナップしたいならここで合わせる
+      // First update snaps to the computed path position.
       this.owner.transform.setPosition(currWorld);
       this.prevWorld = vec3.clone(currWorld);
       return;
     }
 
-    // パス上での「前フレームからの移動量」
+    // Delta movement along the path since the previous frame.
     const delta = vec3.create();
     vec3.sub(delta, currWorld, this.prevWorld);
 
-    // 相対移動として適用 → FluidDrag などとも足し算で共存できる
+    // Apply as relative movement so it can coexist with FluidDrag.
     this.owner.transform.translate(delta);
 
     vec3.copy(this.prevWorld, currWorld);
@@ -86,19 +86,19 @@ export class ProjectileUVPath implements Component {
   onDetach?(): void {}
 }
 
-// projectileUVPath.ts 側か、別ファイルでもOK
+// Simple downward UV path helper.
 export const straightUpPath: UVPathFunc = (t: number) => {
-  const speed = -0.4; // vの符号は実際のUVの向きに合わせて調整
-  return { u: 0, v: speed * t }; // uはそのまま、vだけ時間で変化
+  const speed = -0.4;
+  return { u: 0, v: speed * t };
 };
 
-// basePath が作る (u, v) を angleRad だけ回転させる
+// Rotate the (u, v) offset produced by basePath.
 export function rotateUVPath(
   basePath: UVPathFunc,
   angleRad: number | ((t: number) => number)
 ): UVPathFunc {
   return (t: number) => {
-    const p = basePath(t); // 元の相対UV
+    const p = basePath(t);
     const u = p.u;
     const v = p.v;
 
@@ -106,7 +106,7 @@ export function rotateUVPath(
     const c = Math.cos(theta);
     const s = Math.sin(theta);
 
-    // 原点(0,0)まわりの2D回転
+    // 2D rotation around the origin.
     const ru = c * u - s * v;
     const rv = s * u + c * v;
 

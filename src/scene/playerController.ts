@@ -22,19 +22,27 @@ export class PlayerController implements Component {
     this.dragK = dragK;
 
     window.addEventListener("keydown", (e) => this.onKey(e, true));
-    window.addEventListener("keyup",   (e) => this.onKey(e, false));
+    window.addEventListener("keyup", (e) => this.onKey(e, false));
   }
 
   private onKey(e: KeyboardEvent, state: boolean) {
     switch (e.key) {
       case "a":
-      case "ArrowLeft":  this.input.left  = state; break;
+      case "ArrowLeft":
+        this.input.left = state;
+        break;
       case "d":
-      case "ArrowRight": this.input.right = state; break;
+      case "ArrowRight":
+        this.input.right = state;
+        break;
       case "w":
-      case "ArrowUp":    this.input.up    = state; break;
+      case "ArrowUp":
+        this.input.up = state;
+        break;
       case "s":
-      case "ArrowDown":  this.input.down  = state; break;
+      case "ArrowDown":
+        this.input.down = state;
+        break;
     }
   }
 
@@ -46,12 +54,12 @@ export class PlayerController implements Component {
     const rb = this.owner.getComponent(RigidBody);
     if (!rb) return;
 
-    // 方向ベクトル
+    // Movement direction.
     const dir = vec3.create();
-    if (this.input.left)  dir[0] -= 1;
+    if (this.input.left) dir[0] -= 1;
     if (this.input.right) dir[0] += 1;
-    if (this.input.down)  dir[1] -= 1;
-    if (this.input.up)    dir[1] += 1;
+    if (this.input.down) dir[1] -= 1;
+    if (this.input.up) dir[1] += 1;
 
     const len = Math.hypot(dir[0], dir[1]);
 
@@ -63,20 +71,20 @@ export class PlayerController implements Component {
       }
       this.hadInputLastFrame = true;
 
-      // 正規化
+      // Normalize direction.
       dir[0] /= len;
       dir[1] /= len;
 
-      // いまのスピード
+      // Current speed along the input direction.
       const vAlong = rb.velocity[0] * dir[0] + rb.velocity[1] * dir[1];
 
-      // 既に上限以上なら、これ以上は押しても加速しない
+      // Do not accelerate further if speed is already above the cap.
       if (vAlong < this.maxSpeed) {
         const force = vec3.create();
         const k = this.thrustCurve(this.moveHeldTime);
-        vec3.scale(force, dir, this.thrustForce * k); // 大きさ一定の力
+        vec3.scale(force, dir, this.thrustForce * k);
 
-        rb.addForce(force); // あとは RigidBody & FluidDrag に任せる
+        rb.addForce(force);
       }
     } else {
       this.hadInputLastFrame = false;
@@ -91,19 +99,19 @@ export class PlayerController implements Component {
   onDetach?(): void {}
 
   private thrustCurve(t: number): number {
-    const rise = 0.08;   // 立ち上がり時間
-    const fall = 0.25;   // 落ち着くまでの時間
+    const rise = 0.08;
+    const fall = 0.25;
 
     if (t <= 0) return 0;
 
     if (t < rise) {
-        // 0 → 1 へ線形に増える
-        return t / rise;
+      // Ramp linearly from 0 to 1.
+      return t / rise;
     }
 
-    const s = (t - rise) / fall; // 0 〜
-    // 1.3 → 1.0 → 0.7 くらいまでゆるやかに減衰
+    const s = (t - rise) / fall;
+    // Ease down from 1.3 toward 0.7.
     const k = 1.3 - 0.6 * Math.min(s, 1.0);
-    return Math.max(0.6, k); // 下限 0.6（完全にはゼロにしない）
+    return Math.max(0.6, k);
   }
 }

@@ -9,13 +9,13 @@ import { Program } from "../gl/program";
 
 export type GamePrograms = {
   unlitColor: Program;
-  // 将来増やせる：sprite, phong, etc...
+  // Add more programs later: sprite, phong, etc.
 };
 
 export type GameMaterials = {
   player: IMaterial;
   enemySmall: IMaterial;
-  // boss: IMaterial; など…
+  // boss: IMaterial; etc.
 };
 
 export function createGamePrograms(

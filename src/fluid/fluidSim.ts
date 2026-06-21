@@ -41,11 +41,11 @@ export class FluidSim{
 
     private copyProgram: Program;
 
-     // dye の相対スケールを覚えておく
+    // Keep the dye buffers at their original relative scale.
     private dyeScaleX: number;
     private dyeScaleY: number;
 
-    // 内部FBOたち（外に出さない）
+    // Internal FBOs are kept private.
     private velocity: DoubleFBO;
     private dye: DoubleFBO;
     private logicDye: DoubleFBO;
@@ -94,7 +94,7 @@ export class FluidSim{
         this.dyeScaleX = dyeWidth  / width;
         this.dyeScaleY = dyeHeight / height;
 
-        // ここで FBO/DoubleFBO を全部作る
+        // Create all FBOs and double FBOs here.
         this.velocity = createDoubleFBO(gl, width, height, 
             formats.vel.internalFormat, formats.vel.format, formats.vel.type, formats.vel.param);
         this.dye = createDoubleFBO(gl, dyeWidth, dyeHeight, 
@@ -124,7 +124,7 @@ export class FluidSim{
             this.decayOnly(dt, rect);
             return;
         }
-        // 共通Uniformのbind
+        // Bind common uniforms.
         this.computeCurl(rect);
         this.applyVorticity(dt, rect);
         this.applyPhysics(dt, rect, accel);
@@ -206,22 +206,21 @@ export class FluidSim{
     getLogicTexture() {
         return this.logicDye.read.texture;
     }
-    // FluidSim のメソッドとして追加
     sampleVelocity(u: number, v: number): { x: number; y: number } {
         const gl = this.gl;
 
-        // UV → テクセル座標
+        // Convert UV to texel coordinates.
         const ix = Math.min(this.width  - 1, Math.max(0, Math.floor(u * this.width)));
         const iy = Math.min(this.height - 1, Math.max(0, Math.floor(v * this.height)));
 
         const prevFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
 
-        // velocity の FBO から 1ピクセル読み取る
+        // Read one pixel from the velocity FBO.
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.velocity.read.fbo);
 
         const buf = new Float32Array(4);
         gl.readPixels(ix, iy, 1, 1, gl.RGBA, gl.FLOAT, buf);
-        // buf.xy が velocity
+        // buf.xy contains velocity.
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, prevFbo);
 
@@ -287,7 +286,7 @@ export class FluidSim{
         this.applyCommonUniforms(prog, rect, this.velocity);
         const locuVelocity = getRequiredUniform(prog, "uVelocity");
         const locuCurl = getRequiredUniform(prog, "uCurlMap");
-        const locCurl = getRequiredUniform(prog, "curlStrength");   // vorticity confinementの強さ.
+        const locCurl = getRequiredUniform(prog, "curlStrength");   // Vorticity confinement strength.
         const locDt  = getRequiredUniform(prog, "dt");
     
         this.gl.uniform1i(locuVelocity, this.velocity.read.attach(0));
@@ -330,7 +329,7 @@ export class FluidSim{
     private clearPressure(){
         const prog = this.shaders.clear;
         prog.bind();
-        // clear用には obstacle / texelSize / uvClamp は不要なら何もせずでOK
+        // Clear does not need obstacle, texelSize, or uvClamp uniforms.
 
         const locuTexture = getRequiredUniform(prog, "uTexture");
         const locValue    = getRequiredUniform(prog, "value");
@@ -386,7 +385,7 @@ export class FluidSim{
         if (locAdvectDt) this.gl.uniform1f(locAdvectDt, advectDt);
         if (locDecayDt)  this.gl.uniform1f(locDecayDt, decayDt);
 
-        // dyeTexelSize だけは「MANUAL_FILTERING のときだけ存在していれば良い」
+        // dyeTexelSize only needs to exist when MANUAL_FILTERING is enabled.
         if (!this.ext.supportLinearFiltering && locDyeTexelSize == null) {
             throw new Error("dyeTexelSize uniform が見つかりません（MANUAL_FILTERING 有効時）");
         }
@@ -407,11 +406,11 @@ export class FluidSim{
         this.blit(this.dye.write);
         this.dye.swap();
 
-        // --- ★ logicDye（ロジック） ---
+        // --- logicDye ---
         if (!this.ext.supportLinearFiltering)
             this.gl.uniform2f(locDyeTexelSize as WebGLUniformLocation,this.logicDye.texelSizeX, this.logicDye.texelSizeY);
 
-        // 速度場は同じ velocity を使う
+        // Use the same velocity field for logic dye.
         this.gl.uniform1i(locuVelocity, this.velocity.read.attach(0));
         this.gl.uniform1i(locuSource,  this.logicDye.read.attach(1));
         this.gl.uniform1f(locDissipation, this.config.LOGIC_DISSIPATION);
@@ -433,13 +432,13 @@ export class FluidSim{
     }
     private  bindObstacle(program: Program) {
         const loc = program.uniforms.get("uObstacle");
-        if (loc == null) return; // そのシェーダが uObstacle を使ってないなら何もしない
+        if (loc == null) return; // The shader does not use uObstacle.
         this.gl.uniform1i(loc, this.obstacle.attach(3));
     }
 
     private bindUVClamp(program: Program, rect: ViewRect){
         const loc = program.uniforms.get("uViewRect");
-        if (loc == null) return; // そのシェーダが uViewRect を使ってないなら何もしない
+        if (loc == null) return; // The shader does not use uViewRect.
         this.gl.uniform4f(loc, rect.uMin, rect.vMin, rect.uMax, rect.vMax);
     }
 
@@ -450,12 +449,10 @@ export class FluidSim{
         return radius;
     }
 
-      // ---- ここから新規メソッド ----
-
   /**
-   * 外部からキャンバスサイズの変更を伝えるためのリサイズ関数
-   * @param canvasWidth  キャンバスの実ピクセル幅
-   * @param canvasHeight キャンバスの実ピクセル高さ
+   * Resize internal buffers after the canvas pixel size changes.
+   * @param canvasWidth Canvas width in physical pixels.
+   * @param canvasHeight Canvas height in physical pixels.
    */
   resize(canvasWidth: number, canvasHeight: number): void {
     const gl = this.gl;
@@ -463,11 +460,11 @@ export class FluidSim{
     const newWidth  = Math.max(1, canvasWidth);
     const newHeight = Math.max(1, canvasHeight);
 
-    // ※ ここで 1/2 解像度などにしたければスケールを掛ける：
+    // Apply a scale here if the simulation should run below full resolution.
     // const newWidth  = Math.max(1, Math.floor(canvasWidth  * 0.5));
     // const newHeight = Math.max(1, Math.floor(canvasHeight * 0.5));
 
-    // 変化なしなら何もしない
+    // Nothing to do when the size did not change.
     if (newWidth === this.width && newHeight === this.height) {
       return;
     }
@@ -475,14 +472,14 @@ export class FluidSim{
     this.width = newWidth;
     this.height = newHeight;
 
-    // dye / logicDye の解像度は「もともとの比率」を維持
+    // Preserve the original dye / logicDye scale ratio.
     const newDyeWidth  = Math.max(1, Math.floor(newWidth  * this.dyeScaleX));
     const newDyeHeight = Math.max(1, Math.floor(newHeight * this.dyeScaleY));
 
     const { vel, dye, pressure, stream, obstacle } = this.formats;
 
-    // velocity / curl / divergence / pressure / stream / obstacle は
-    // 物理シミュレーション解像度に追従
+    // Velocity, curl, divergence, pressure, stream, and obstacle follow
+    // the physics simulation resolution.
     this.velocity = resizeDoubleFBO(
       gl, this.blit, this.copyProgram,
       this.velocity,
@@ -549,7 +546,7 @@ export class FluidSim{
       obstacle.param,
     );
 
-    // dye / logicDye は別解像度
+    // dye / logicDye use their own resolution.
     this.dye = resizeDoubleFBO(
       gl, this.blit, this.copyProgram,
       this.dye,
@@ -572,7 +569,7 @@ export class FluidSim{
       dye.param,
     );
 
-    // obstacle / stream は内容を描き直した方がいいのでクリアしておく
+    // Clear obstacle and stream because they are redrawn by the scene.
     this.clearObstacle();
     this.clearStream();
   }

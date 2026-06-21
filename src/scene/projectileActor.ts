@@ -17,25 +17,25 @@ import { type LocalPathFunc, LocalPathMover } from "./projectileLocalPath";
 export function createProjectileSphereUV(
   gl: WebGLRenderingContext | WebGL2RenderingContext,
   scene: Scene,
-  originUV: {u: number, v: number},
+  originUV: { u: number; v: number },
   zPlane: number,
   opts: {
     radius: number;
     material: IMaterial;
-    colliderLayer: CollisionLayer;      // この弾自身のレイヤー（enemyBullet など）
-    hitLayers: CollisionLayer[];        // 当たりたい相手のレイヤー（player など）
+    colliderLayer: CollisionLayer;      // Projectile's own layer.
+    hitLayers: CollisionLayer[];        // Layers this projectile should hit.
     lifeSec?: number;
-    path: UVPathFunc;                // 軌道 p(t)
-    hitScale?: number;                  // 判定半径のスケール
+    path: UVPathFunc;                   // Path p(t).
+    hitScale?: number;                  // Collider radius scale.
     name?: string;
-    offsetUV?: {u: number, v: number};
+    offsetUV?: { u: number; v: number };
     fluid?: {
       enabled: boolean;
       fluidSim: FluidSim;
       canvas: HTMLCanvasElement;
       strength?: number;
       color?: { r: number; g: number; b: number };
-    }
+    };
   }
 ): GameObject {
   const {
@@ -47,41 +47,42 @@ export function createProjectileSphereUV(
     path,
     hitScale = 1.0,
     name = "ProjectileSphere",
-    offsetUV = {u: 0, v: 0},
+    offsetUV = { u: 0, v: 0 },
   } = opts;
 
   const mesh = createSphere(radius);
   const go = new GameObject(name);
 
-  // 見た目
+  // Visuals.
   go.addComponent(new MeshFilter(mesh));
   go.addComponent(new MeshRenderer(gl, material));
 
-  // 当たり判定
+  // Collision.
   const collider = new SphereCollider(
     scene,
     radius * hitScale,
     colliderLayer,
-    true  // isTrigger
+    true
   );
   go.addComponent(collider);
 
-  // 軌道
+  // Movement path.
   go.addComponent(new ProjectileUVPath(scene, originUV, path, zPlane, offsetUV));
 
-  // Projectile ロジック（寿命・画面外・衝突処理）[未実装]
+  // Projectile logic: lifetime, bounds, and collision handling.
   go.addComponent(new Projectile(scene, lifeSec, hitLayers));
 
   if (opts.fluid?.enabled) {
-    const { fluidSim, canvas, strength = 1.0,
-            color = { r: 1, g: 1, b: 1 } } = opts.fluid;
-    go.addComponent(
-      new FluidEmitter(scene, fluidSim, canvas, strength, color)
-    );
-    go.addComponent(new RigidBody())
-    go.addComponent(
-        new FluidDrag(scene, fluidSim, 0.02)
-    );
+    const {
+      fluidSim,
+      canvas,
+      strength = 1.0,
+      color = { r: 1, g: 1, b: 1 },
+    } = opts.fluid;
+
+    go.addComponent(new FluidEmitter(scene, fluidSim, canvas, strength, color));
+    go.addComponent(new RigidBody());
+    go.addComponent(new FluidDrag(scene, fluidSim, 0.02));
   }
 
   scene.addObject(go);
@@ -123,11 +124,11 @@ export function createProjectileSphereLocal(
   const mesh = createSphere(radius);
   const go = new GameObject(name);
 
-  // 見た目
+  // Visuals.
   go.addComponent(new MeshFilter(mesh));
   go.addComponent(new MeshRenderer(gl, material));
 
-  // コライダー
+  // Collider.
   const collider = new SphereCollider(
     scene,
     radius * hitScale,
@@ -136,10 +137,10 @@ export function createProjectileSphereLocal(
   );
   go.addComponent(collider);
 
-  // ★ 軌道は LocalPath を使う
+  // Movement path.
   go.addComponent(new LocalPathMover(localPath));
 
-  // Projectile ロジック
+  // Projectile logic.
   go.addComponent(new Projectile(scene, lifeSec, hitLayers));
 
   if (opts.fluid?.enabled) {

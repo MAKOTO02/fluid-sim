@@ -40,7 +40,7 @@ export const DirectionUtil = {
     const t = to.getWorldPosition();
     const dx = t[0] - p[0];
     const dy = t[1] - p[1];
-    // XY 平面での向き → 角度
-    return Math.atan2(dy, dx); // ラジアン
+    // Direction on the XY plane to angle.
+    return Math.atan2(dy, dx);
   }
 };

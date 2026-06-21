@@ -29,7 +29,7 @@ export function createFBO(
   type: number,
   param: number
 ): FBO {
-  // テクスチャ作成
+  // Create texture.
   const texture = gl.createTexture();
   if (!texture) throw new Error("createFBO: failed to create texture");
 
@@ -39,7 +39,7 @@ export function createFBO(
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-  // ★ ここは WebGL1/2 共通の texImage2D
+  // Shared WebGL1/WebGL2 texImage2D path.
   gl.texImage2D(
     gl.TEXTURE_2D,
     0,
@@ -52,7 +52,7 @@ export function createFBO(
     null
   );
 
-  // FBO 作成
+  // Create FBO.
   const fbo = gl.createFramebuffer();
   if (!fbo) throw new Error("createFBO: failed to create framebuffer");
 
@@ -65,7 +65,7 @@ export function createFBO(
     0
   );
 
-  // 完成チェック
+  // Check framebuffer completeness.
   const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
   if (status !== gl.FRAMEBUFFER_COMPLETE) {
     console.error("createFBO: incomplete framebuffer", {
@@ -79,7 +79,7 @@ export function createFBO(
     throw new Error("createFBO: FRAMEBUFFER_INCOMPLETE (0x" + status.toString(16) + ")");
   }
 
-  // 片付け
+  // Cleanup bindings.
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.bindTexture(gl.TEXTURE_2D, null);
 
@@ -184,7 +184,7 @@ export function resizeDoubleFBO (
 
 export type BlitFunc = (target: FBO | null, clear?: boolean) => void;
 export function createBlit(gl: WebGLRenderingContext | WebGL2RenderingContext): BlitFunc {
-    // 一度だけバッファ・頂点属性を設定
+    // Set up buffers and vertex attributes once.
     const vbo = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
     gl.bufferData(
@@ -204,7 +204,7 @@ export function createBlit(gl: WebGLRenderingContext | WebGL2RenderingContext): 
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(0);
 
-    // ここからが「実際に使う blit 関数」
+    // This is the blit function used by simulation passes.
     return (target: FBO | null, clear = false) => {
         if (target == null) {
             gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);

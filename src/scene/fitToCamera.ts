@@ -38,16 +38,16 @@ export class FitToCamera implements Component{
             const H = 2 * this.dist * Math.tan(fov / 2);
             const W = H * aspect;
 
-            // カメラローカルで前方 dist の位置
+            // Position at dist units forward in camera-local space.
             this.owner.transform.setPosition(vec3.fromValues(0, 0, -this.dist));
             this.owner.transform.setScale(vec3.fromValues(W, H, 1));
         }else{
             const PlaneZ = camPos[2] - this.dist;
 
-            const H = 2 * this.dist * Math.tan(fov / 2); // 高さ
-            const W = H * aspect;                   // 幅
+            const H = 2 * this.dist * Math.tan(fov / 2);
+            const W = H * aspect;
 
-            // カメラローカル：前方 dist の位置に貼り付け
+            // Attach to the camera-local plane at forward distance dist.
             this.owner.transform.setPosition(vec3.fromValues(camPos[0], camPos[1], PlaneZ));
             this.owner.transform.setScale(vec3.fromValues(W, H, 1));
         }

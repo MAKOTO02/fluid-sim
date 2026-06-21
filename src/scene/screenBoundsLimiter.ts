@@ -13,7 +13,7 @@ export class ScreenBoundsLimiter implements Component {
 
   constructor(
     scene: Scene,
-    padding = 0.05  // 画面端から何割内側まで許すか
+    padding = 0.05
   ) {
     this.scene = scene;
     this.padding = padding;
@@ -39,13 +39,13 @@ export class ScreenBoundsLimiter implements Component {
 
     if (!clamped) return;
 
-    // UV を clamp した位置にワープさせる
+    // Warp to the clamped UV position.
     const newWorld = cam.screenUVToWorldOnPlane(u, v, pos[2]);
     if (!newWorld) return;
 
     this.owner.transform.setPosition(newWorld);
 
-    // 外向きの速度も 0 にしておくと端に張り付かない
+    // Clear outward velocity to avoid sticking to the edge.
     const rb = this.owner.getComponent(RigidBody);
     if (rb) {
       if (u === this.padding && rb.velocity[0] < 0) rb.velocity[0] = 0;

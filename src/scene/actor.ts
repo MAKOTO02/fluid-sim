@@ -1,4 +1,4 @@
-// actors.ts みたいな別ファイルにしても良い
+// This can live in a separate actors.ts-style file.
 import { GameObject } from "./gameObject";
 import { MeshRenderer } from "./meshRenderer";
 import { SphereCollider } from "./collider";

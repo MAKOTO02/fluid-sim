@@ -12,7 +12,7 @@ export abstract class BaseMaterial implements IMaterial {
     this.program = program;
   }
 
-  /** 必要ならサブクラスで override してもよい */
+  /** Subclasses may override this if needed. */
   protected uploadCommonMatrices(
     gl: WebGLRenderingContext | WebGL2RenderingContext,
     owner: GameObject,
@@ -23,7 +23,7 @@ export abstract class BaseMaterial implements IMaterial {
     camera.updateShaderUniforms(this.program);
   }
 
-  /** 共通の bind。最後にサブクラス用 hook を呼ぶ */
+  /** Common bind path. Calls the subclass hook at the end. */
   bind(
     gl: WebGLRenderingContext | WebGL2RenderingContext,
     owner: GameObject,
@@ -35,7 +35,7 @@ export abstract class BaseMaterial implements IMaterial {
     this.uploadMaterialUniforms(gl);
   }
 
-  /** 各マテリアル固有の uniform / texture 設定 */
+  /** Material-specific uniform / texture setup. */
   protected abstract uploadMaterialUniforms(
     gl: WebGLRenderingContext | WebGL2RenderingContext
   ): void;

@@ -6,7 +6,7 @@ varying vec2 vUv;
 uniform sampler2D uVelocity;
 uniform float dt;
 
-uniform vec2 uGravity;  // (0.0, -9.8) のようなイメージ（スケールは適当）
+uniform vec2 uGravity;  // Conceptually like (0.0, -9.8); scale is tuned for gameplay.
 uniform vec2 uAccel;
 uniform sampler2D uObstacle;
 uniform sampler2D uStreamForce;
@@ -18,9 +18,9 @@ void main () {
     vec2 streamMask = texture2D(uStreamForce, vUv).xy;
     v += uGravity * dt;      // v^{*} = v^n + dt * g
     v -= uAccel * dt;
-    v += streamMask * dt * 1000000.0;   // 今は強くしておく。流れの速さを受け取ることを検討.
+    v += streamMask * dt * 1000000.0;   // Temporarily strong; tune stream strength later.
 
-    // 暴走防止（元コードの vorticity と同じ感じ）
+    // Prevent runaway velocity.
     v = clamp(v, vec2(-1000.0), vec2(1000.0));
 
     v *= (1.0 - mask);

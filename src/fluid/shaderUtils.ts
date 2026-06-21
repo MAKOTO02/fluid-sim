@@ -5,7 +5,7 @@ export function getRequiredUniform(
     name: string
 ): WebGLUniformLocation {
     const loc = program.uniforms.get(name);
-    // getUniformLocation は null を返すこともあるので == null でまとめてチェック
+    // getUniformLocation may return null, so check with == null.
     if (loc == null) {
         throw new Error(`Required uniform '${name}' is missing in program`);
     }
@@ -17,6 +17,6 @@ export function getOptionalUniform(
     name: string
 ): WebGLUniformLocation | null {
     const loc = program.uniforms.get(name) ?? null;
-    // 見つからなければ null のまま返す（エラーにしない）
+    // Missing optional uniforms are returned as null instead of throwing.
     return loc;
 }

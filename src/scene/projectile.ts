@@ -10,16 +10,16 @@ export class Projectile implements Component {
 
   private scene: Scene;
 
-  /** 弾の寿命（秒） */
+  /** Projectile lifetime in seconds. */
   private life: number;
 
-  /** ヒット対象とするレイヤー（空なら全部に当たる扱い） */
+  /** Target layers. An empty list means the projectile can hit everything. */
   private targetLayers: CollisionLayer[];
 
-  /** 画面外判定のマージン（少し外まで許容したいときに使う） */
+  /** Out-of-bounds margin for allowing a small area outside the screen. */
   private outOfBoundsMargin: number;
 
-  /** ヒット時コールバック（必要なら外から差し込める） */
+  /** Optional callback invoked when the projectile hits something. */
   onHitCallback?: (self: GameObject, other: GameObject) => void;
 
   constructor(
@@ -42,7 +42,7 @@ export class Projectile implements Component {
   start(): void {
     if (!this.owner) return;
 
-    // コライダーを拾って onTriggerEnter を設定
+    // Connect trigger events from the collider.
     const col = this.owner.getComponent(SphereCollider);
     if (col) {
       col.onTriggerEnter = (other) => this.onTrigger(other);
@@ -52,14 +52,14 @@ export class Projectile implements Component {
   update(dt: number): void {
     if (!this.enabled || !this.owner) return;
 
-    // 寿命カウントダウン
+    // Countdown lifetime.
     this.life -= dt;
     if (this.life <= 0) {
       this.destroySelf();
       return;
     }
 
-    // 画面外判定（カメラの UV で）
+    // Out-of-bounds check in camera UV space.
     const cam = this.scene.MainCamera;
     if (!cam) return;
 
@@ -73,11 +73,11 @@ export class Projectile implements Component {
     }
   }
 
-  // コライダーから呼ばれる
+  // Called from the collider.
   private onTrigger(other: SphereCollider) {
     if (!this.owner) return;
 
-    // 弾側でも一応フィルタ（既存ロジック）
+    // Keep target-layer filtering on the projectile side as well.
     if (!this.canHit(other.layer)) {
       return;
     }
@@ -92,13 +92,13 @@ export class Projectile implements Component {
   private destroySelf() {
     if (!this.owner) return;
 
-    // GameObject.destroy() がある前提ならこれでOK
+    // Prefer GameObject.destroy() when available.
     if (typeof (this.owner as any).destroy === "function") {
       (this.owner as any).destroy();
     } else {
-      // まだ destroy を実装していない場合の暫定措置
+      // Fallback for objects without destroy().
       this.owner.active = false;
-      // Scene に removeObject があるならここで呼んでもよい
+      // Remove from Scene directly when possible.
       if ((this.scene as any).removeObject) {
         (this.scene as any).removeObject(this.owner);
       }

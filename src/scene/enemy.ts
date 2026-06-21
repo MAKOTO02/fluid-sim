@@ -13,7 +13,7 @@ export const EnemyStates = {
   Dead: "dead",
 } as const;
 
-// 型は union 型として定義
+// Define enemy states as a union type.
 export type EnemyState = (typeof EnemyStates)[keyof typeof EnemyStates];
 
 export class Enemy implements Component {
@@ -51,24 +51,24 @@ export class Enemy implements Component {
       return;
     }
 
-    // ★ Enemy 側のヒット処理をここに
+    // Enemy-side hit handling.
     col.onTriggerEnter = (other) => {
-      // bullet 以外は無視
+      // Ignore non-bullet colliders.
       if (other.layer !== "bullet") return;
 
       const bulletOwner = other.owner;
     if (!bulletOwner) return;
 
-    // そのオブジェクトが Projectile を持っているか確認
+    // Check whether the other object owns a Projectile component.
     const proj = bulletOwner.getComponent(Projectile);
     if (!proj) return;
 
-    // この弾が「enemy レイヤー」をターゲットにしていなければ無視
+    // Ignore bullets that do not target the enemy layer.
     if (!proj.canHit("enemy")) return;
 
       console.log("[Enemy] hit by bullet", { self: this.owner, other });
-      this.kill();  // 仮にこうしておく.
-      // stateを管理するクラスを用意すべき？
+      this.kill();
+      // Consider moving state management into a dedicated class later.
     };
   }
 
@@ -92,7 +92,7 @@ export class Enemy implements Component {
     return this.owner?.id;
   }
 
-  // ライフサイクル
+  // Lifecycle.
   kill(): void{
     this.state = "dead";
     console.log(`${this.name} is killed.`);

@@ -5,14 +5,14 @@ import { vec3 } from "gl-matrix";
 
 export type LogicSample = { r: number; g: number; b: number; a: number };
 
-// 色→どう影響するかはこのハンドラに任せる
+// The handler decides how sampled color affects gameplay.
 export type FluidEffectHandler = (
     sample: LogicSample,
     dt: number,
     owner: GameObject
 ) => void;
 
-// Transform.position -> UV に変換する関数
+// Converts Transform.position to UV coordinates.
 export type WorldToUVFunc = (pos: vec3) => { u: number; v: number };
 
 export class FluidSampler implements Component {
@@ -34,7 +34,7 @@ export class FluidSampler implements Component {
     }
 
     start?(): void {
-        // 特になし
+        // Nothing to initialize.
     }
 
     onAttach?(): void {
@@ -52,11 +52,11 @@ export class FluidSampler implements Component {
         const c = this.fluid.sampleLogic(u, v);
         const sample: LogicSample = { r: c.r, g: c.g, b: c.b, a: c.a };
 
-        // ここで具体的な効果を適用する
+        // Apply the concrete effect here.
         this.handler(sample, dt, this.owner);
     }
 
     onDetach?(): void {
-        // 特になし
+        // Nothing to release.
     }
 }

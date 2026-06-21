@@ -29,7 +29,7 @@ export type EnemyConfig = {
   id: number,
   hitPoint: number;
   materialKey: keyof GameMaterials
-  material?: IMaterial;              // ★ここに紐付け
+  material?: IMaterial;
   visual: EnemyVisualFactory;
   getBulletSource: (enemy: Enemy) => Transform;
   fire: (ctx: FireContext, enemy: Enemy) => void;
@@ -65,7 +65,7 @@ const simpleEnemyConfig: EnemyConfig = {
         const t = count > 1 ? i / (count - 1) : 0.5;
         const offset = t - 0.5;
 
-        // 左端が -spread/2, 右端が +spread/2 になるように
+        // Map the left edge to -spread/2 and the right edge to +spread/2.
         const angle = offset * spreadRad;
         const dir = vec3.clone(baseDir);
         const x = dir[0];
@@ -92,7 +92,7 @@ const simpleEnemyConfig: EnemyConfig = {
             */
         });
 
-        // ★ なるべく enemy.config 経由で参照しておくと汎用性が高い
+        // Prefer accessing settings through enemy.config for extensibility.
         
 
         bullet.transform.setParent(muzzle);
@@ -105,7 +105,7 @@ const simpleEnemyConfig: EnemyConfig = {
     const factory = enemyStrategyFactories.get(EnemyStrategies.FixedInterval);
 
     if (factory) {
-      return factory(ctx); // ctx を渡して Strategy 生成
+      return factory(ctx);
     } else {
       return defaultEnemyStrategy;
     }

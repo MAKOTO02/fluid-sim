@@ -39,7 +39,7 @@ export class FluidEmitter implements Component {
   }
 
   start(): void {
-    // ここで一度だけ位置から prevUV を初期化しておくと安全
+    // Initialize prevUV from the first known position.
     if (!this.owner) return;
     const cam = this.scene.MainCamera;
     if (!cam) return;

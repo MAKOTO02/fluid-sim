@@ -3,7 +3,7 @@ precision highp float;
 attribute vec3 aPosition;
 attribute vec2 aTexCoord;
 
-uniform mat4 uModelMat;
+uniform mat4 uModelMat;  
 uniform mat4 uViewMat;
 uniform mat4 uProjectionMat;
 

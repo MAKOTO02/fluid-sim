@@ -17,37 +17,37 @@ export function createCube(size = 1): Mesh {
     const s = size * 0.5;
 
     const raw = [
-        // +Z 面
+        // +Z face
         { pos: [-s, -s,  s], uv: [0.0,      0.5] }, // 0
         { pos: [ s, -s,  s], uv: [0.333333, 0.5] }, // 1
         { pos: [ s,  s,  s], uv: [0.333333, 1.0] }, // 2
         { pos: [-s,  s,  s], uv: [0.0,      1.0] }, // 3
 
-        // -X 面
+        // -X face
         { pos: [-s, -s, -s], uv: [0.333333, 0.5] }, // 4
         { pos: [-s, -s,  s], uv: [0.666667, 0.5] }, // 5
         { pos: [-s,  s,  s], uv: [0.666667, 1.0] }, // 6
         { pos: [-s,  s, -s], uv: [0.333333, 1.0] }, // 7
 
-        // -Z 面
+        // -Z face
         { pos: [ s, -s, -s], uv: [0.666667, 0.5] }, // 8
         { pos: [-s, -s, -s], uv: [1.0,     0.5] }, // 9
         { pos: [-s,  s, -s], uv: [1.0,     1.0] }, // 10
         { pos: [ s,  s, -s], uv: [0.666667, 1.0] }, // 11
 
-        // +Y 面
+        // +Y face
         { pos: [-s,  s,  s], uv: [0.0,      0.0] }, // 12
         { pos: [ s,  s,  s], uv: [0.333333, 0.0] }, // 13
         { pos: [ s,  s, -s], uv: [0.333333, 0.5] }, // 14
         { pos: [-s,  s, -s], uv: [0.0,      0.5] }, // 15
 
-        // +X 面
+        // +X face
         { pos: [ s, -s,  s], uv: [0.333333, 0.0] }, // 16
         { pos: [ s, -s, -s], uv: [0.666667, 0.0] }, // 17
         { pos: [ s,  s, -s], uv: [0.666667, 0.5] }, // 18
         { pos: [ s,  s,  s], uv: [0.333333, 0.5] }, // 19
 
-        // -Y 面
+        // -Y face
         { pos: [-s, -s, -s], uv: [0.666667, 0.0] }, // 20
         { pos: [ s, -s, -s], uv: [1.0,     0.0] }, // 21
         { pos: [ s, -s,  s], uv: [1.0,     0.5] }, // 22
@@ -120,15 +120,15 @@ export function createCylinder(
     const indices: number[] = [];
     const h = height * 0.5;
 
-    // 側面
+    // Side surface.
     for (let i = 0; i <= segments; i++) {
         const t = (i / segments) * 2 * Math.PI;
         const x = Math.cos(t) * radius;
         const z = Math.sin(t) * radius;
         const u = i / segments;
 
-        verts.push({ pos: [x, -h, z], uv: [u, 0] }); // 下
-        verts.push({ pos: [x,  h, z], uv: [u, 1] }); // 上
+        verts.push({ pos: [x, -h, z], uv: [u, 0] }); // bottom
+        verts.push({ pos: [x,  h, z], uv: [u, 1] }); // top
     }
     for (let i = 0; i < segments; i++) {
         const i0 = i * 2;
@@ -139,7 +139,7 @@ export function createCylinder(
         indices.push(i1, i3, i2);
     }
 
-    // 上下のフタ（簡易：中心＋三角ファン）
+    // Top and bottom caps using simple triangle fans.
     const topCenterIndex = verts.length;
     verts.push({ pos: [0, h, 0], uv: [0.5, 0.5] });
     for (let i = 0; i <= segments; i++) {

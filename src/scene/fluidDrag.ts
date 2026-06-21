@@ -22,9 +22,9 @@ export class FluidDrag implements Component{
         this.dragStrength = dragStrength;
     }
 
-    // WaveFactor 用のアップロード口
+    // External control for the wave influence multiplier.
     setWaveFactor(f: number) {
-        // 好きに clamp
+        // Clamp to a normalized range.
         this.waveFactor = Math.max(0, Math.min(1, f));
     }
 
@@ -52,14 +52,14 @@ export class FluidDrag implements Component{
         let relX = vel.x - rb.velocity[0];
         let relY = vel.y - rb.velocity[1];
 
-        const margin = 0.05; // 5% くらいの余白
-        // 左端付近かつ左向きの力 → 打ち消す
+        const margin = 0.05;
+        // Cancel outward force near the left edge.
         if (u < margin && relX < 0) relX = 0;
-        // 右端付近かつ右向きの力
+        // Cancel outward force near the right edge.
         if (u > 1 - margin && relX > 0) relX = 0;
-        // 下端付近かつ下向き
+        // Cancel outward force near the bottom edge.
         if (v < margin && relY < 0) relY = 0;
-        // 上端付近かつ上向き
+        // Cancel outward force near the top edge.
         if (v > 1 - margin && relY > 0) relY = 0;
 
         rb.addForce(

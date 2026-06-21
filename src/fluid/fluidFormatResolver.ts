@@ -24,7 +24,7 @@ export class FluidFormatResolver {
         this.ext = ext;
     }
 
-  /** 速度場（vel）→ RGBA16F または RGBA */
+  /** Velocity field: RGBA16F or RGBA. */
     velocityFormat() {
         return {
             internalFormat: this.ext.formatRGBA!.internalFormat,
@@ -34,7 +34,7 @@ export class FluidFormatResolver {
         };
     }
 
-  /** 圧力場 → R16F or RED */
+  /** Pressure field: R16F or RED. */
     pressureFormat() {
         return {
             internalFormat: this.ext.formatR!.internalFormat,
@@ -44,7 +44,7 @@ export class FluidFormatResolver {
         };
     }
 
-  /** dye（色）→ RGBA16F or RGBA */
+  /** Dye color field: RGBA16F or RGBA. */
     dyeFormat() {
         return {
             internalFormat: this.ext.formatRGBA!.internalFormat,
@@ -54,7 +54,7 @@ export class FluidFormatResolver {
         };
     }
 
-    // stream(発散や補助バッファ系): pressure と同じで OK
+    // Stream and helper buffers can use the pressure-like format.
     streamFormat(){
         return {
             internalFormat: this.ext.formatRG!.internalFormat,
@@ -64,13 +64,13 @@ export class FluidFormatResolver {
         }
     } 
 
-    // obstacle(障害物マスク): 0/1 だけ分かればいいので byte でも良い
+    // Obstacle mask only needs to represent 0/1 values.
     obstacleFormat(){
     const r = this.ext.formatR ?? this.ext.formatRGBA!;
     return {
         internalFormat: r.internalFormat,
         format: r.format,
-        type: this.ext.halfFloatTexType,  // ← 他と同じ
+        type: this.ext.halfFloatTexType,
         param: this.gl.NEAREST,
     };
 }

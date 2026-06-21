@@ -24,12 +24,12 @@ export class GameObject {
     this.active = b;
 
     if (b) {
-      // 有効化
+      // Enable.
       for (const c of this.components) {
         c.onEnable?.();
       }
     } else {
-      // 無効化
+      // Disable.
       for (const c of this.components) {
         c.onDisable?.();
       }
@@ -71,7 +71,7 @@ export class GameObject {
 
   update(dt: number) {
     if(!this.active || this.destroyed) return;
-    // --- 1回だけ start させる ---
+    // Call start exactly once.
     for (const c of this.components) {
         if (!this.componentStarted.get(c)) {
             c.start?.();

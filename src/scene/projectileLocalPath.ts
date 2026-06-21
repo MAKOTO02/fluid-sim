@@ -23,7 +23,7 @@ export class LocalPathMover implements Component {
     if (!this.owner) return;
 
     this.time = 0;
-    // local position をそのまま起点に
+    // Use the current local position as the origin.
     vec3.copy(this.originLocal, this.owner.transform.position);
     vec3.copy(this.prevLocalOnPath, this.originLocal);
   }
@@ -42,7 +42,7 @@ export class LocalPathMover implements Component {
 
     vec3.sub(this._delta, this._curr, this.prevLocalOnPath);
 
-    // local Δ として適用
+    // Apply movement as a local-space delta.
     this.owner.transform.translate(this._delta);
 
     vec3.copy(this.prevLocalOnPath, this._curr);
@@ -61,14 +61,14 @@ export function makeStraightPath(dir: vec3, speed: number): LocalPathFunc {
   });
 }
 
-// projectileLocalPath.ts あたりに追加
+// Additional path helper.
 
 export function rotateLocalPath2D(
   base: LocalPathFunc,
   angleRad: number | ((t: number) => number)
 ): LocalPathFunc {
   return (t: number) => {
-    const p = base(t); // 元の (x, y, z)
+    const p = base(t);
     const theta = typeof angleRad === "function" ? angleRad(t) : angleRad;
     const c = Math.cos(theta);
     const s = Math.sin(theta);

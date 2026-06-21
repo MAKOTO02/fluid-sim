@@ -5,9 +5,9 @@ export class Transform {
   readonly rotation: quat;   // local
   readonly scale: vec3;      // local
 
-  localMatrix: mat4;         // local → 親ローカル空間
-  worldMatrix: mat4;         // ワールド空間
-  private _dirty = true;     // このTransform（と子）の行列が古いかどうか
+  localMatrix: mat4;         // local to parent-local space
+  worldMatrix: mat4;         // world space
+  private _dirty = true;     // Whether this transform or its children need matrix updates.
 
   parent: Transform | null = null;
   children: Transform[] = [];
@@ -15,17 +15,17 @@ export class Transform {
   constructor() {
     this.position = vec3.create();
     this.rotation = quat.create();
-    this.scale    = vec3.fromValues(1, 1, 1);
+    this.scale = vec3.fromValues(1, 1, 1);
 
     this.localMatrix = mat4.create();
     this.worldMatrix = mat4.create();
   }
 
-  // 親子関係の設定
+  // Parent-child relationship.
   setParent(newParent: Transform | null) {
     if (this.parent === newParent) return;
 
-    // 旧親から外す
+    // Detach from the old parent.
     if (this.parent) {
       const i = this.parent.children.indexOf(this);
       if (i >= 0) {
@@ -35,7 +35,7 @@ export class Transform {
 
     this.parent = newParent;
 
-    // 新しい親に登録
+    // Register with the new parent.
     if (newParent) {
       newParent.children.push(this);
     }
@@ -43,14 +43,14 @@ export class Transform {
     this.markDirty();
   }
 
-  // 親の world まで考慮して worldMatrix を計算する
+  // Compute worldMatrix while respecting the parent chain.
   public updateMatrix(): mat4 {
     if (this.parent) {
       this.parent.updateMatrix();
     }
 
     if (this._dirty) {
-      // 1. localMatrix 更新
+      // 1. Update localMatrix.
       mat4.fromRotationTranslationScale(
         this.localMatrix,
         this.rotation,
@@ -59,11 +59,11 @@ export class Transform {
       );
 
       // world = parent.world * local
-    if (this.parent) {
-      mat4.mul(this.worldMatrix, this.parent.worldMatrix, this.localMatrix);
-    } else {
-      mat4.copy(this.worldMatrix, this.localMatrix);
-    }
+      if (this.parent) {
+        mat4.mul(this.worldMatrix, this.parent.worldMatrix, this.localMatrix);
+      } else {
+        mat4.copy(this.worldMatrix, this.localMatrix);
+      }
 
       this._dirty = false;
     }
@@ -86,17 +86,17 @@ export class Transform {
     return p;
   }
 
-   /** ワールド空間での forward ベクトル (-Z 方向) */
+  /** World-space forward vector (-Z direction). */
   getForward(out?: vec3): vec3 {
     this.updateMatrix();
     const m = this.worldMatrix;
     const f = out ?? vec3.create();
-    // gl-matrix はカラムメジャー: 3列目が Z 軸
+    // gl-matrix uses column-major matrices; the third column is the Z axis.
     vec3.set(f, -m[8], -m[9], -m[10]);
     return vec3.normalize(f, f);
   }
 
-  /** ワールド空間での up ベクトル (Y 軸) */
+  /** World-space up vector (Y axis). */
   getUp(out?: vec3): vec3 {
     this.updateMatrix();
     const m = this.worldMatrix;
@@ -105,7 +105,7 @@ export class Transform {
     return vec3.normalize(u, u);
   }
 
-  /** ワールド空間での right ベクトル (X 軸) */
+  /** World-space right vector (X axis). */
   getRight(out?: vec3): vec3 {
     this.updateMatrix();
     const m = this.worldMatrix;
@@ -114,7 +114,7 @@ export class Transform {
     return vec3.normalize(r, r);
   }
 
-  // ---- 変換系メソッド ----
+  // ---- Transform operations ----
 
   translate(offset: vec3) {
     vec3.add(this.position, this.position, offset);
@@ -151,22 +151,21 @@ export class Transform {
     this.markDirty();
   }
 
-  // ---- 行列取得 ----
+  // ---- Matrix accessors ----
 
   getWorldMatrix(): mat4 {
     return this.updateMatrix();
   }
 
   getLocalMatrix(): mat4 {
-    // world 更新のついでに local も最新になるので、
-    // 必要なら updateMatrix() を呼んでしまってもよい
+    // updateMatrix() refreshes localMatrix as a side effect.
     if (this._dirty) {
       this.updateMatrix();
     }
     return this.localMatrix;
   }
 
-  // 親が動いたときに子も dirty にするのが重要
+  // When a parent changes, children must also be marked dirty.
   markDirty() {
     if (this._dirty) return;
     this._dirty = true;
@@ -183,7 +182,7 @@ export class Transform {
     return t;
   }
 
-  // 親チェーンを列挙したいとき用（おまけ）
+  // Enumerate parent chain.
   *getParents(): Iterable<Transform> {
     let t = this.parent;
     while (t) {

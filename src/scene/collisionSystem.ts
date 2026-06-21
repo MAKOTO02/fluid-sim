@@ -11,7 +11,7 @@ export class CollisionSystem {
     this.colliders = this.colliders.filter(x => x !== c);
   }
 
-  // 毎フレーム呼ぶ
+  // Called every frame.
   update(_dt: number) {
     const n = this.colliders.length;
     for (let i = 0; i < n; i++) {
@@ -26,30 +26,30 @@ export class CollisionSystem {
         const bo = b.owner;
         if (!b.enabled || !bo) continue;
 
-        // layer マスクでフィルタしたければここで
+        // Add layer-mask filtering here if needed.
         if (!this.shouldCollide(a, b)) continue;
 
         const pb = bo.transform.getWorldPosition();
         const dx = pa[0] - pb[0];
         const dy = pa[1] - pb[1];
-        const dz = pa[2] - pb[2]; // z 揃えておけば3DでもOK
+        const dz = pa[2] - pb[2]; // Works in 3D when z is aligned.
 
         const r = a.radius + b.radius;
         if (dx*dx + dy*dy + dz*dz <= r*r) {
-          // Trigger 同士ならイベントだけ
+          // Trigger pairs only emit events.
           if (a.isTrigger && b.isTrigger) {
             a.onTriggerEnter?.(b);
             b.onTriggerEnter?.(a);
           }
-          // 物理反応つけるならここで
+          // Add physical response here if needed.
         }
       }
     }
   }
 
   private shouldCollide(_a: SphereCollider, _b: SphereCollider): boolean {
-    // ここで layer 組合せを見て、「player vs enemyBullet は衝突させるけど
-    // playerBullet vs player は無視」みたいなルールを入れられる
+    // Add layer-pair rules here, such as allowing player vs enemyBullet
+    // while ignoring playerBullet vs player.
     return true;
   }
 }

@@ -43,12 +43,12 @@ export class MeshRenderer implements Component{
     }
 
     update(_dt: number): void{
-        // 何かする?
+        // Nothing to update for now.
     }
 
     onAttach?(): void {}
     onDetach?(): void {
-    // VAO / VBO / IBO の解放もここでできる
+    // VAO / VBO / IBO cleanup can be added here.
         const gl = this.gl as WebGL2RenderingContext;
         if (this.vao) {
             gl.deleteVertexArray(this.vao);
@@ -119,7 +119,7 @@ export class MeshRenderer implements Component{
         }
         offset += ATTR_POS * FLOAT_SIZE;
 
-        // aTexCoord (vec2, あれば)
+        // aTexCoord (vec2, when available)
         if (hasUV) {
             const locUV = gl.getAttribLocation(this.material.program.program, "aTexCoord");
             //console.log("initBuffers: locUV =", locUV);

@@ -10,11 +10,11 @@ export class MeshFilter implements Component{
     }
 
     start(): void {
-    // とくに何もしない想定だが、後で差し替えてもOK
+    // No initialization needed for now.
     }
 
     update(_dt: number): void {
-        // MeshFilter 自体は毎フレームすることはないので空でOK
+        // MeshFilter has no per-frame work.
     }
 
     onAttach?(): void {}

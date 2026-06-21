@@ -60,7 +60,7 @@ const { gl, ext } = getWebGLContext(canvas);
 if(!gl) throw new Error("WebGL RenderingContext が見つかりません.");
 
 
-// プログラム準備
+// Prepare shader programs.
 const shaderLib = new ShaderLibrary(gl);
 const programs = createGamePrograms(shaderLib);
 const materials = createGameMaterials(programs);
@@ -103,8 +103,8 @@ const blit = (() => {
     }
 })();
 
-// 初期化時だけ呼ぶ
-// 例: FluidFormatResolver を外から渡す／ここで new する
+// Called only during initialization.
+// The format resolver can be passed in from outside or created here.
 function bakeBulletVectorField(
   gl: WebGLRenderingContext | WebGL2RenderingContext,
   shaderLib: ShaderLibrary,
@@ -120,9 +120,9 @@ function bakeBulletVectorField(
     gl,
     size,
     size,
-    fmt.internalFormat,          // ★ ここは固定で OK
+    fmt.internalFormat,
     fmt.format,
-    fmt.type, // ★ byte テクスチャ
+    fmt.type,
     fmt.param
   );
 
@@ -220,11 +220,11 @@ const fluidSim = new FluidSim(
 );
 
 
-// gl の状態をリセット.
+// Reset GL state.
 gl.bindFramebuffer(gl.FRAMEBUFFER, null); 
 gl.viewport(0, 0, canvas.width, canvas.height);
 
-// シーンとレンダラー
+// Scene and renderer.
 const scene = new Scene();
 const renderer = new Renderer(gl);
 const layers = {
@@ -233,7 +233,7 @@ const layers = {
   stream: 1 << 2,
 }
 
-// カメラ GameObject
+// Camera GameObject.
 const cameraObj = new GameObject("MainCamera");
 cameraObj.transform.translate(vec3.fromValues(0, 0, 5));
 const cameraComp = cameraObj.addComponent(
@@ -305,7 +305,7 @@ const fluidEmitter = new FluidEmitter(scene, fluidSim, canvas, SPLAT_FORCE, { r:
 emitter.addComponent(fluidEmitter);
 emitter.transform.setParent(player.transform);
 
-//scene.addObject(player);  // これは
+//scene.addObject(player);
 player.transform.translate(vec3.fromValues(-2, -1.5, 0));
 scene.addObject(emitter);
 
@@ -330,7 +330,7 @@ enemy.addComponent(enemyComp);
 enemyComp.createVisual(gl, scene);
 scene.addObject(enemy);
 
-// 初期化
+// Initialize render targets.
 function init(){
   scene.update(0);
   const cam = scene.MainCamera;
@@ -352,14 +352,14 @@ function init(){
 
 init();
 
-// ループ
+// Main loop.
 let last = performance.now();
 let fluidTimer = 0;
 const fps = 30;
 function loop(now: number) {
   let dt = (now - last) / 1000;
   last = now;
-  dt = Math.min(dt, 1 / 30);  // クランプしておく.
+  dt = Math.min(dt, 1 / 30);  // Clamp large frame deltas.
 
   const resized = resizeCanvas(canvas);
   if (resized) {
@@ -368,20 +368,17 @@ function loop(now: number) {
 
     const cam = scene.MainCamera;
     if (cam) {
-      // もしカメラに aspect があるならここで更新
       cam.setAspect(w / h);
-      // あるいは cam.setViewportSize(w, h) みたいなメソッドでもOK
     }
 
-    // ★ FluidSim にも通知
-    fluidSim.resize(w, h); // ← この中で FBO をリサイズする実装にする
+    // Notify FluidSim so it can resize its FBOs.
+    fluidSim.resize(w, h);
 
     fitter.updateLocalTransform();
     init();
   }
 
   scene.update(dt);
-
   const cam = scene.MainCamera;
   if(cam){
     fluidTimer += dt;
@@ -392,7 +389,7 @@ function loop(now: number) {
     const prevFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
     const prevViewport = gl.getParameter(gl.VIEWPORT);
 
-    // stream の準備.
+    // Prepare stream target.
     const streamTraget = fluidSim.getStreamTarget();
     cam.cullingMask = layers.stream;
     renderer.render(scene, cam, streamTraget);
@@ -401,7 +398,7 @@ function loop(now: number) {
     gl.viewport(prevViewport[0], prevViewport[1], prevViewport[2], prevViewport[3]);
     cam.cullingMask = prevMask;
 
-    // 流体の更新.
+    // Update the fluid simulation.
     //fluidSim.setPaused(true);
     fluidSim.step(dt);
     dyeVisualMaterial.setTextures(fluidSim.getDyeTexture(), fluidSim.getVelTexture());
@@ -422,23 +419,23 @@ canvas.addEventListener("click", (e) => {
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
 
-  // 画面座標 → UV
+  // Screen coordinates to UV.
   const uClick = x / rect.width;
   const vClick = 1 - (y / rect.height);
 
-  // クリック位置をワールド座標に変換（zPlane はプレイヤーと同じ平面）
+  // Convert the click position to world coordinates on the player's plane.
   const playerPos = player.transform.getWorldPosition();
   const clickWorld = cam.screenUVToWorldOnPlane(uClick, vClick, playerPos[2]);
   if (!clickWorld) return;
 
-  // dir = クリック位置 − プレイヤー位置（ワールド方向）
+  // dir = click position - player position in world space.
   const dir = vec3.create();
   vec3.sub(dir, clickWorld, playerPos);
   const len = vec3.length(dir);
   if (len === 0) return;
 
-  // LocalPath 用の直線軌道を作成（root 弾なら local == world）
-  const speed = 3.0; // ワールド空間での速度（調整用）
+  // Create a straight local path. For root bullets, local space matches world space.
+  const speed = 3.0; // World-space speed.
   const localPath = makeStraightPath(dir, speed);
 
   const bullet = createProjectileSphereLocal(gl, scene, {
@@ -458,7 +455,7 @@ canvas.addEventListener("click", (e) => {
     },
   });
 
-  // 発射位置をプレイヤーと同じ場所にスナップ
+  // Spawn from the player's current position.
   bullet.transform.setPosition(playerPos);
 });
 
@@ -477,4 +474,3 @@ function resizeCanvas(canvas: HTMLCanvasElement): boolean {
   }
   return false;
 }
-

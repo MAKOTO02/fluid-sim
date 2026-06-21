@@ -1,12 +1,12 @@
 import { type Enemy, EnemyStates } from "./enemy";
 import type { FireContext } from "./enemyConfig";
 
-// 1. Strategy インターフェース
+// 1. Strategy interface.
 export interface IEnemyStrategy {
   update(enemy: Enemy, dt: number): void;
 }
 
-// 2. 識別子
+// 2. Strategy identifiers.
 export const EnemyStrategies = {
   Default: "default",
   FixedInterval: "fixedInterval",
@@ -15,27 +15,27 @@ export const EnemyStrategies = {
 export type EnemyStrategyId =
   (typeof EnemyStrategies)[keyof typeof EnemyStrategies];
 
-// 3. 「この ID から Strategy インスタンスを作る」ファクトリ型
+// 3. Factory type for creating a strategy instance from an ID.
 export type EnemyStrategyFactory = (ctx: FireContext) => IEnemyStrategy;
 
-// 4. ID → ファクトリ のマップ
+// 4. ID to factory map.
 export const enemyStrategyFactories = new Map<EnemyStrategyId, EnemyStrategyFactory>();
 
-// 5. 一度だけ呼んで登録しておく初期化関数
+// 5. One-time registration function.
 export function setupEnemyStrategyFactories(ctx: FireContext) {
-  // default はステートレスなので共有インスタンスでもOK
+  // The default strategy is stateless, so sharing is fine.
   enemyStrategyFactories.set(EnemyStrategies.Default, () => defaultEnemyStrategy);
 
-  // FixedInterval は timer を持つので、毎回 new する
+  // FixedInterval owns a timer, so create a fresh instance each time.
   enemyStrategyFactories.set(
     EnemyStrategies.FixedInterval,
-    () => new FixedIntervalFireStrategy(ctx, 0.5)  // 仮に0.5秒
+    () => new FixedIntervalFireStrategy(ctx, 0.5)
   );
 }
 
-// ---- Strategy 実装たち ----
+// ---- Strategy implementations ----
 
-// default は「死んでたら destroy するだけ」のシンプルなやつ
+// Default only destroys the enemy after it dies.
 export const defaultEnemyStrategy: IEnemyStrategy = {
   update(enemy, _dt) {
     if (enemy.State === EnemyStates.Dead) {
@@ -55,7 +55,7 @@ export class FixedIntervalFireStrategy implements IEnemyStrategy {
   }
 
   update(enemy: Enemy, dt: number): void {
-    // 死んでたら何もしない
+    // Do nothing after death except destroy the owner.
     if (enemy.State === EnemyStates.Dead) {
       enemy.owner?.destroy();
     }

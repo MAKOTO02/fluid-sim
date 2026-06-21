@@ -23,7 +23,7 @@ export class RigidBody implements Component {
   freezePosY = false;
   freezePosZ = false;
 
-  // 使い回し用の一時ベクトル（GC削減）
+  // Reusable temporary vectors to reduce GC pressure.
   private _tmpV = vec3.create();
   private _tmpA = vec3.create();
   private _tmpPos = vec3.create();
@@ -31,29 +31,25 @@ export class RigidBody implements Component {
   constructor(mass = 1.0, dragK = 2.0) {
     this.mass = mass;
     this.dragK = dragK;
-    // transform は onAttach で owner から取る
+    // transform is assigned from owner during onAttach().
     this.transform = undefined as any;
   }
 
   onAttach?(): void {
     if (!this.owner) {
-      console.warn("RigidBody: owner がありません");
+      console.warn("RigidBody: owner is missing");
       return;
     }
     (this as any).transform = this.owner.transform;
   }
 
-  start(): void {
-    // 特になし
-  }
+  start(): void {}
 
   update(dt: number): void {
     this.integrate(dt);
   }
 
-  onDetach?(): void {
-    // 特にリソース解放は不要
-  }
+  onDetach?(): void {}
 
   addForce(f: vec3, mode: ForceMode = "force") {
     if (mode === "impulse") {
@@ -78,14 +74,14 @@ export class RigidBody implements Component {
       const lambda = this.dragK / this.mass;
       const c = Math.exp(-lambda * dt);
 
-      // vTerm = v_n * e^{-λΔt}
+      // vTerm = v_n * e^(-lambda * dt)
       vec3.scale(this._tmpV, this.velocity, c);
 
-      // fTerm = (F/k) * (1 - e^{-λΔt})
+      // fTerm = (F/k) * (1 - e^(-lambda * dt))
       const scaleF = (1 - c) / this.dragK;
-      vec3.scale(this._tmpA, this.forceAccum, scaleF); // _tmpA を再利用
+      vec3.scale(this._tmpA, this.forceAccum, scaleF);
 
-      const vNext = this.velocity; // そのまま上書き
+      const vNext = this.velocity;
       vec3.add(vNext, this._tmpV, this._tmpA);
       this.applyFreezeToVector(vNext);
 
@@ -96,7 +92,7 @@ export class RigidBody implements Component {
       if (this.freezePosZ) this._tmpA[2] = 0;
       vec3.add(pos, pos, this._tmpA);
 
-      // a ≒ (vNext - vOld) / dt
+      // a ~= (vNext - vOld) / dt
       vec3.sub(this.acceleration, vNext, vOld);
       vec3.scale(this.acceleration, this.acceleration, 1 / dt);
     } else {
@@ -119,10 +115,10 @@ export class RigidBody implements Component {
     if (this.freezePosY) pos[1] = this._tmpPos[1];
     if (this.freezePosZ) pos[2] = this._tmpPos[2];
 
-    // 力をリセット
+    // Reset accumulated forces.
     vec3.set(this.forceAccum, 0, 0, 0);
 
-    // Transform を dirty にする（行列は lazy 更新）
+    // Mark Transform dirty; matrices update lazily.
     this.transform.markDirty();
   }
 
@@ -130,12 +126,12 @@ export class RigidBody implements Component {
     if (!this.transform) return;
     const p = this.transform.position;
 
-    // freeze されていない軸だけ書き換える
+    // Only write axes that are not frozen.
     if (!this.freezePosX) p[0] = pos[0];
     if (!this.freezePosY) p[1] = pos[1];
     if (!this.freezePosZ) p[2] = pos[2];
 
-    // 物理状態リセット
+    // Reset physics state.
     this.applyFreezeToVector(this.velocity);
     this.applyFreezeToVector(this.acceleration);
     vec3.set(this.forceAccum, 0, 0, 0);
@@ -143,7 +139,7 @@ export class RigidBody implements Component {
     this.transform.markDirty();
   }
 
-    private applyFreezeToVector(v: vec3) {
+  private applyFreezeToVector(v: vec3) {
     if (this.freezePosX) v[0] = 0;
     if (this.freezePosY) v[1] = 0;
     if (this.freezePosZ) v[2] = 0;
@@ -154,5 +150,4 @@ export class RigidBody implements Component {
     if (this.freezePosY) this.forceAccum[1] = 0;
     if (this.freezePosZ) this.forceAccum[2] = 0;
   }
-
 }

@@ -38,7 +38,7 @@ export class Scene{
         }
         this.collisionSystem.update(dt);
 
-        // ★ ここでまとめて破棄
+        // Destroy queued objects after all updates.
         if (this.destroyQueue.length > 0) {
             const toRemove = new Set(this.destroyQueue);
             for (const obj of this.destroyQueue) {

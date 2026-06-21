@@ -2,12 +2,12 @@ precision highp float;
 
 varying vec2 vTexCoord;
 
-uniform sampler2D uDye;      // 元の dye
-uniform sampler2D uVelocity; // 速度テクスチャ (RG に vx,vy)
-uniform float uVelScale;     // 速度→明るさのスケール
-uniform float uMix;          // 0=dyeだけ, 1=最大限ゆらす
+uniform sampler2D uDye;      // Source dye texture.
+uniform sampler2D uVelocity; // Velocity texture, with vx/vy in RG.
+uniform float uVelScale;     // Velocity-to-brightness scale.
+uniform float uMix;          // 0=dye only, 1=maximum velocity tint.
 
-// HSV → RGB 変換
+// HSV to RGB conversion.
 vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
@@ -17,11 +17,11 @@ vec3 hsv2rgb(vec3 c) {
 void main() {
     vec3 dye = texture2D(uDye, vTexCoord).rgb;
 
-    // --- 1) dye の強さでマスク -------------------------
+    // --- 1) Mask by dye intensity -------------------------
     float intensity = dot(dye, vec3(0.299, 0.587, 0.114));
     float dyeMask = smoothstep(0.05, 0.20, intensity);
 
-    // --- 2) 速度から色を計算 ---------------------------
+    // --- 2) Compute color from velocity -------------------
     vec2 vel = texture2D(uVelocity, vTexCoord).xy;
 
     float speed = length(vel);
@@ -30,20 +30,19 @@ void main() {
     float angle = atan(vel.y, vel.x);                  // -pi..pi
     float hue   = angle / (2.0 * 3.14159265) + 0.5;    // 0..1
 
-    // ★ 彩度・明るさをかなり抑える
-    float sat = mix(0.1, 0.3, vMag);   // 0.1〜0.3
-    float val = mix(0.3, 0.5, vMag);   // 0.3〜0.5
+    // Keep saturation and brightness subtle.
+    float sat = mix(0.1, 0.3, vMag);
+    float val = mix(0.3, 0.5, vMag);
 
     vec3 velColor = hsv2rgb(vec3(hue, sat, val));
 
-    // ★ dye が薄いところでは、ほぼ何も乗せない
+    // Apply almost no tint where dye is weak.
     float localMix = uMix * dyeMask * vMag;
 
-    // ★ 「完全に置き換え」ではなく、少しだけずらす
-    //    ＝ dye に対して速度色との差分を少しだけ足すイメージ
+    // Shift the dye color slightly instead of replacing it.
     vec3 shaded = (dye + localMix * (velColor - dye)) * 0.5;
 
-    // ハイライトが飛び過ぎないようにクランプ
+    // Clamp to avoid blown-out highlights.
     shaded = clamp(shaded, 0.0, 1.0);
 
     gl_FragColor = vec4(shaded, 1.0);
