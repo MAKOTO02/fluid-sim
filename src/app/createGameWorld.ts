@@ -1,5 +1,5 @@
 import type { FluidSim } from "../fluid/fluidSim";
-import type { MovementInput } from "../input/inputController";
+import type { GameInput } from "../input/inputController";
 import { Renderer } from "../scene/renderer";
 import type { RenderAssets } from "../scene/renderAssets";
 import { Scene } from "../scene/scene";
@@ -13,7 +13,7 @@ import { SceneLayers } from "../scene/layers";
 import { createQuad } from "../scene/primitives";
 import { createPlayer } from "../scene/playerFactory";
 import { createDemoEnemy } from "../scene/enemyFactory";
-import { setupPlayerShooting } from "../scene/playerShooting";
+import { PlayerShooting } from "../scene/playerShooting";
 import type { DyeVisualMaterial } from "../scene/materials/dyeVisualMaterial";
 import type { FitToCamera } from "../scene/fitToCamera";
 
@@ -30,7 +30,7 @@ export function createGameWorld(args: {
   fluidSim: FluidSim;
   renderAssets: RenderAssets;
   bulletStreamTexture: WebGLTexture;
-  input: MovementInput;
+  input: GameInput;
 }): GameWorld {
   const { gl, canvas, fluidSim, renderAssets, bulletStreamTexture, input } = args;
 
@@ -89,15 +89,15 @@ export function createGameWorld(args: {
     target: player.transform,
   });
 
-  setupPlayerShooting({
-    canvas,
+  player.addComponent(new PlayerShooting({
     gl,
     scene,
-    player,
+    input,
     material: renderAssets.materials.player,
     fluidSim,
+    canvas,
     splatForce,
-  });
+  }));
 
   return {
     scene,

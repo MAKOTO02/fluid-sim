@@ -1,39 +1,60 @@
 import { vec3 } from "gl-matrix";
 import type { FluidSim } from "../fluid/fluidSim";
+import type { ShootingInput } from "../input/inputController";
+import type { Component } from "./component";
 import type { IMaterial } from "./material";
 import type { GameObject } from "./gameObject";
 import { createProjectileSphereLocal } from "./projectileActor";
 import { makeStraightPath } from "./projectileLocalPath";
 import type { Scene } from "./scene";
 
-export type PlayerShootingHandle = {
-  dispose(): void;
-};
+export class PlayerShooting implements Component {
+  enabled = true;
+  owner?: GameObject;
 
-export function setupPlayerShooting(args: {
-  canvas: HTMLCanvasElement;
-  gl: WebGLRenderingContext | WebGL2RenderingContext;
-  scene: Scene;
-  player: GameObject;
-  material: IMaterial;
-  fluidSim: FluidSim;
-  splatForce: number;
-}): PlayerShootingHandle {
-  const { canvas, gl, scene, player, material, fluidSim, splatForce } = args;
+  private readonly gl: WebGLRenderingContext | WebGL2RenderingContext;
+  private readonly scene: Scene;
+  private readonly input: ShootingInput;
+  private readonly material: IMaterial;
+  private readonly fluidSim: FluidSim;
+  private readonly canvas: HTMLCanvasElement;
+  private readonly splatForce: number;
 
-  const onClick = (e: MouseEvent) => {
-    const cam = scene.MainCamera;
+  constructor(args: {
+    gl: WebGLRenderingContext | WebGL2RenderingContext;
+    scene: Scene;
+    input: ShootingInput;
+    material: IMaterial;
+    fluidSim: FluidSim;
+    canvas: HTMLCanvasElement;
+    splatForce: number;
+  }) {
+    this.gl = args.gl;
+    this.scene = args.scene;
+    this.input = args.input;
+    this.material = args.material;
+    this.fluidSim = args.fluidSim;
+    this.canvas = args.canvas;
+    this.splatForce = args.splatForce;
+  }
+
+  update() {
+    if (!this.owner || !this.enabled) return;
+
+    const commands = this.input.consumeShootCommands();
+    for (const command of commands) {
+      this.shootAt(command.u, command.v);
+    }
+  }
+
+  private shootAt(u: number, v: number) {
+    if (!this.owner) return;
+
+    const cam = this.scene.MainCamera;
     if (!cam) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const uClick = x / rect.width;
-    const vClick = 1 - (y / rect.height);
-
-    const playerPos = player.transform.getWorldPosition();
-    const clickWorld = cam.screenUVToWorldOnPlane(uClick, vClick, playerPos[2]);
+    const playerPos = this.owner.transform.getWorldPosition();
+    const clickWorld = cam.screenUVToWorldOnPlane(u, v, playerPos[2]);
     if (!clickWorld) return;
 
     const dir = vec3.create();
@@ -44,9 +65,9 @@ export function setupPlayerShooting(args: {
     const speed = 3.0;
     const localPath = makeStraightPath(dir, speed);
 
-    const bullet = createProjectileSphereLocal(gl, scene, {
+    const bullet = createProjectileSphereLocal(this.gl, this.scene, {
       radius: 0.04,
-      material,
+      material: this.material,
       colliderLayer: "bullet",
       hitLayers: ["enemy"],
       lifeSec: 5.0,
@@ -54,21 +75,13 @@ export function setupPlayerShooting(args: {
       name: "PlayerBullet",
       fluid: {
         enabled: true,
-        fluidSim,
-        canvas,
-        strength: splatForce,
+        fluidSim: this.fluidSim,
+        canvas: this.canvas,
+        strength: this.splatForce,
         color: { r: 0, g: 1, b: 0 },
       },
     });
 
     bullet.transform.setPosition(playerPos);
-  };
-
-  canvas.addEventListener("click", onClick);
-
-  return {
-    dispose() {
-      canvas.removeEventListener("click", onClick);
-    },
-  };
+  }
 }

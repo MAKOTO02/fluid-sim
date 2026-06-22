@@ -28,7 +28,7 @@ if(!gl) throw new Error("WebGL RenderingContext が見つかりません.");
 
 
 const shaderLib = new ShaderLibrary(gl);
-const inputController = new InputController();
+const inputController = new InputController({ pointerTarget: canvas });
 const renderAssets = createRenderAssets(shaderLib);
 setupEnemyConfigs(renderAssets.materials);
 
