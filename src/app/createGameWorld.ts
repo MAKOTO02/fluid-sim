@@ -1,4 +1,5 @@
 import type { FluidSim } from "../fluid/fluidSim";
+import { createDebugTextureMap, type DebugTextureMap } from "../debug/debugTextureMap";
 import type { GameInput } from "../input/inputController";
 import { Renderer } from "../scene/renderer";
 import type { RenderAssets } from "../scene/renderAssets";
@@ -17,6 +18,7 @@ export type GameWorld = {
   renderer: Renderer;
   stage: GameStage;
   player: GameObject;
+  debugTextureMap: DebugTextureMap;
   dyeVisualMaterial: DyeVisualMaterial;
   fitter: FitToCamera;
 };
@@ -64,11 +66,21 @@ export function createGameWorld(args: {
     input,
   });
 
+  const debugTextureMap = createDebugTextureMap({
+    scene,
+    gl,
+    program: renderAssets.unlitTexProgram,
+    frameMaterial: renderAssets.debugFrameMaterial,
+    fluidSim,
+    layer: SceneLayers.default,
+  });
+
   return {
     scene,
     renderer,
     stage,
     player: stage.player,
+    debugTextureMap,
     dyeVisualMaterial,
     fitter,
   };

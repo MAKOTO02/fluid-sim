@@ -67,6 +67,7 @@ const world = createGameWorld({
 const {
   scene,
   renderer,
+  debugTextureMap,
   dyeVisualMaterial,
   fitter,
 } = world;
@@ -89,6 +90,8 @@ function updateFrame(dt: number) {
     fitter,
     onResized: initializeFrameTargets,
   });
+
+  debugTextureMap.updateTextures();
 
   updateFluidFrame({
     gl,

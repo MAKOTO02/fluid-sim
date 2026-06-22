@@ -11,6 +11,7 @@ import { createGameMaterials, createGamePrograms, type GameMaterials } from "./g
 export type RenderAssets = {
   materials: GameMaterials;
   obstacleMaterial: IMaterial;
+  debugFrameMaterial: IMaterial;
   unlitTexProgram: Program;
   dyeVisualProgram: Program;
 };
@@ -21,6 +22,8 @@ export function createRenderAssets(shaderLib: ShaderLibrary): RenderAssets {
 
   const obstacleColor = vec4.fromValues(1, 0, 0, 0);
   const obstacleMaterial = new UnlitColorMaterial(programs.unlitColor, obstacleColor);
+  const debugFrameColor = vec4.fromValues(1, 1, 1, 0.35);
+  const debugFrameMaterial = new UnlitColorMaterial(programs.unlitColor, debugFrameColor);
 
   const unlitTexProgram = shaderLib.load("UnlitTex", sceneVert, UnlitTexFrag);
   const dyeVisualProgram = shaderLib.load("DyeVelVisual", sceneVert, dyeVisualFrag);
@@ -28,6 +31,7 @@ export function createRenderAssets(shaderLib: ShaderLibrary): RenderAssets {
   return {
     materials,
     obstacleMaterial,
+    debugFrameMaterial,
     unlitTexProgram,
     dyeVisualProgram,
   };
