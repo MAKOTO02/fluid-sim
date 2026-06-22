@@ -1,6 +1,7 @@
 import { Scene } from "./scene/scene";
 import { Renderer } from "./scene/renderer";
 import { vec4 } from "gl-matrix"
+import { GameLoop } from "./app/gameLoop";
 
 import sceneVert from "./shaders/sceneVertexShader.vert?raw";
 import UnlitColorFrag from "./shaders/sceneShader.frag?raw";
@@ -161,15 +162,9 @@ function init(){
 
 init();
 
-// Main loop.
-let last = performance.now();
 let fluidTimer = 0;
 const fps = 30;
-function loop(now: number) {
-  let dt = (now - last) / 1000;
-  last = now;
-  dt = Math.min(dt, 1 / 30);  // Clamp large frame deltas.
-
+function updateFrame(dt: number) {
   const resized = resizeCanvas(canvas);
   if (resized) {
     const w = canvas.width;
@@ -214,10 +209,10 @@ function loop(now: number) {
 
     renderer.render(scene, cam);
   }
-
-  requestAnimationFrame(loop);
 }
-requestAnimationFrame(loop);
+
+const gameLoop = new GameLoop(updateFrame);
+gameLoop.start();
 
 
 function scaleByPixelRatio(input: number): number {
