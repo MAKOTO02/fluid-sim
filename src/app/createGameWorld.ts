@@ -70,6 +70,7 @@ export function createGameWorld(args: {
     scene,
     gl,
     program: renderAssets.unlitTexProgram,
+    streamVisualProgram: renderAssets.streamVisualProgram,
     frameMaterial: renderAssets.debugFrameMaterial,
     fluidSim,
     layer: SceneLayers.default,

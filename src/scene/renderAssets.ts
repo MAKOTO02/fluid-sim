@@ -2,6 +2,7 @@ import { vec4 } from "gl-matrix";
 import type { Program } from "../gl/program";
 import UnlitTexFrag from "../shaders/unlitTexShader.frag?raw";
 import dyeVisualFrag from "../shaders/dyeVisual.frag?raw";
+import streamVisualFrag from "../shaders/streamVisual.frag?raw";
 import sceneVert from "../shaders/sceneVertexShader.vert?raw";
 import type { IMaterial } from "./material";
 import { UnlitColorMaterial } from "./materials/unlitColorMaterial";
@@ -13,6 +14,7 @@ export type RenderAssets = {
   obstacleMaterial: IMaterial;
   debugFrameMaterial: IMaterial;
   unlitTexProgram: Program;
+  streamVisualProgram: Program;
   dyeVisualProgram: Program;
 };
 
@@ -26,6 +28,7 @@ export function createRenderAssets(shaderLib: ShaderLibrary): RenderAssets {
   const debugFrameMaterial = new UnlitColorMaterial(programs.unlitColor, debugFrameColor);
 
   const unlitTexProgram = shaderLib.load("UnlitTex", sceneVert, UnlitTexFrag);
+  const streamVisualProgram = shaderLib.load("StreamVisual", sceneVert, streamVisualFrag);
   const dyeVisualProgram = shaderLib.load("DyeVelVisual", sceneVert, dyeVisualFrag);
 
   return {
@@ -33,6 +36,7 @@ export function createRenderAssets(shaderLib: ShaderLibrary): RenderAssets {
     obstacleMaterial,
     debugFrameMaterial,
     unlitTexProgram,
+    streamVisualProgram,
     dyeVisualProgram,
   };
 }

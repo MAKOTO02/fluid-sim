@@ -5,6 +5,7 @@ import { GameObject } from "../scene/gameObject";
 import type { IMaterial } from "../scene/material";
 import { MeshFilter } from "../scene/meshFilter";
 import { MeshRenderer } from "../scene/meshRenderer";
+import { StreamVisualMaterial } from "../scene/materials/streamVisualMaterial";
 import { UnlitTextureMaterial } from "../scene/materials/unlitTexMaterial";
 import { createQuad } from "../scene/primitives";
 import type { Scene } from "../scene/scene";
@@ -19,11 +20,12 @@ export function createDebugTextureMap(args: {
   scene: Scene;
   gl: WebGLRenderingContext | WebGL2RenderingContext;
   program: Program;
+  streamVisualProgram: Program;
   frameMaterial: IMaterial;
   fluidSim: FluidSim;
   layer: number;
 }): DebugTextureMap {
-  const { scene, gl, program, frameMaterial, fluidSim, layer } = args;
+  const { scene, gl, program, streamVisualProgram, frameMaterial, fluidSim, layer } = args;
   const aspect = fluidSim.getObstacleTarget().width / fluidSim.getObstacleTarget().height;
   const previewHeight = 0.45;
   const previewScale = vec3.fromValues(previewHeight * aspect, previewHeight, 1);
@@ -32,8 +34,8 @@ export function createDebugTextureMap(args: {
     program,
     fluidSim.getObstacleTarget().texture
   );
-  const streamMaterial = new UnlitTextureMaterial(
-    program,
+  const streamMaterial = new StreamVisualMaterial(
+    streamVisualProgram,
     fluidSim.getStreamTarget().texture
   );
 
@@ -72,7 +74,7 @@ export function createDebugTextureMap(args: {
 function createPreviewQuad(args: {
   scene: Scene;
   gl: WebGLRenderingContext | WebGL2RenderingContext;
-  material: UnlitTextureMaterial;
+  material: IMaterial;
   frameMaterial: IMaterial;
   name: string;
   layer: number;
