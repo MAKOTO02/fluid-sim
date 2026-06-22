@@ -5,18 +5,15 @@ import { vec4 } from "gl-matrix"
 import sceneVert from "./shaders/sceneVertexShader.vert?raw";
 import UnlitColorFrag from "./shaders/sceneShader.frag?raw";
 import UnlitTexFrag from "./shaders/unlitTexShader.frag?raw";
-import streamBulletFieldFrag from "./shaders/streamBulletField.frag?raw";
 import dyeVisualFrag from "./shaders/dyeVisual.frag?raw";
 import { getWebGLContext } from "./gl/glContext";
 import { UnlitColorMaterial } from "./scene/materials/unlitColorMaterial";
 import { ShaderLibrary } from "./scene/shaderLibrary";
 
-import baseVert from "./shaders/baseVertexShader.vert?raw";
-
-import { type FBO , createFBO} from "./gl/frameBuffer";
-import type { FluidFormatResolver } from "./fluid/fluidFormatResolver";
+import { createBlit } from "./gl/frameBuffer";
 import { createFluidShaderPrograms } from "./fluid/fluidShaders";
 import { createFluidSim } from "./fluid/createFluidSim";
+import { bakeBulletVectorField } from "./fluid/bulletStreamField";
 import { createQuad } from "./scene/primitives";
 import { createFluidPlaneObject, createObstacleObject, createStreamObject } from "./scene/fluidSceneObjects";
 import { createMainCamera } from "./scene/cameraObject";
@@ -53,71 +50,7 @@ const obstacleMaterial = new UnlitColorMaterial(unlitColorProgram, obstacleColor
 const unlitTexProgram = shaderLib.load("UnlitTex", sceneVert, UnlitTexFrag);
 const dyeVisualProgram = shaderLib.load("DyeVelVisual", sceneVert, dyeVisualFrag);
 
-const blit = (() => {
-    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]), gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 0, 2, 3]), gl.STATIC_DRAW);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(0);
-
-    return (target: FBO | null, clear = false) => {
-        if (target == null)
-        {
-            gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        }
-        else
-        {
-            gl.viewport(0, 0, target.width, target.height);
-            gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
-        }
-        if (clear)
-        {
-            gl.clearColor(0.0, 0.0, 0.0, 1.0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-        }
-        // CHECK_FRAMEBUFFER_STATUS();
-        gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
-    }
-})();
-
-// Called only during initialization.
-// The format resolver can be passed in from outside or created here.
-function bakeBulletVectorField(
-  gl: WebGLRenderingContext | WebGL2RenderingContext,
-  shaderLib: ShaderLibrary,
-  blit: (target: FBO | null, clear?: boolean) => void,
-  resolver: FluidFormatResolver
-) {
-  const prog = shaderLib.load("BulletStreamField", baseVert, streamBulletFieldFrag);
-
-  const size = 64;
-  const fmt = resolver.streamFormat();
-
-  const fbo = createFBO(
-    gl,
-    size,
-    size,
-    fmt.internalFormat,
-    fmt.format,
-    fmt.type,
-    fmt.param
-  );
-
-  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.fbo);
-  gl.viewport(0, 0, size, size);
-
-  prog.bind();
-  const locStrength = prog.uniforms.get("uStrength");
-  if (locStrength) gl.uniform1f(locStrength, 0.0003);
-
-  blit(fbo);
-
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-  return fbo.texture;
-}
+const blit = createBlit(gl);
 
 const fluidShaderLib = new ShaderLibrary(gl);
 const { fluidShaders, copyProgram } = createFluidShaderPrograms(fluidShaderLib);
