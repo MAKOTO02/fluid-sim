@@ -9,9 +9,12 @@ import { createFluidShaderPrograms } from "./fluid/fluidShaders";
 import { createFluidSim } from "./fluid/createFluidSim";
 import { bakeBulletVectorField } from "./fluid/bulletStreamField";
 import { InputController } from "./input/inputController";
+import { DebugPanel } from "./debug/debugPanel";
+import { formatWorldSnapshot } from "./debug/formatWorldSnapshot";
 import { setupEnemyConfigs } from "./scene/enemyConfig";
 import { createRenderAssets } from "./scene/renderAssets";
 import { createGameWorld } from "./app/createGameWorld";
+import { createWorldSnapshot } from "./app/worldSnapshot";
 import { SceneLayers } from "./scene/layers";
 
 const canvas = document.querySelector("canvas")!;
@@ -29,6 +32,7 @@ if(!gl) throw new Error("WebGL RenderingContext が見つかりません.");
 
 const shaderLib = new ShaderLibrary(gl);
 const inputController = new InputController({ pointerTarget: canvas });
+const debugPanel = new DebugPanel();
 const renderAssets = createRenderAssets(shaderLib);
 setupEnemyConfigs(renderAssets.materials);
 
@@ -51,12 +55,7 @@ const bulletStreamTexture = bakeBulletVectorField(gl, shaderLib, blit, resolver)
 gl.bindFramebuffer(gl.FRAMEBUFFER, null); 
 gl.viewport(0, 0, canvas.width, canvas.height);
 
-const {
-  scene,
-  renderer,
-  dyeVisualMaterial,
-  fitter,
-} = createGameWorld({
+const world = createGameWorld({
   gl,
   canvas,
   fluidSim,
@@ -64,6 +63,13 @@ const {
   bulletStreamTexture,
   input: inputController,
 });
+
+const {
+  scene,
+  renderer,
+  dyeVisualMaterial,
+  fitter,
+} = world;
 
 function initializeFrameTargets() {
   initializeObstacleTarget({
@@ -93,6 +99,8 @@ function updateFrame(dt: number) {
     streamLayer: SceneLayers.stream,
     dt,
   });
+
+  debugPanel.setText(formatWorldSnapshot(createWorldSnapshot(world)));
 }
 
 const gameController = new GameController({
