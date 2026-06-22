@@ -1,5 +1,6 @@
 import { vec3 } from "gl-matrix";
 import type { FluidSim } from "../fluid/fluidSim";
+import type { MovementInput } from "../input/inputController";
 import type { IMaterial } from "./material";
 import { createSphereActor } from "./actor";
 import { FluidDrag } from "./fluidDrag";
@@ -23,8 +24,9 @@ export function createPlayer(args: {
   canvas: HTMLCanvasElement;
   material: IMaterial;
   fluidSim: FluidSim;
+  input: MovementInput;
 }): PlayerSetup {
-  const { scene, gl, canvas, material, fluidSim } = args;
+  const { scene, gl, canvas, material, fluidSim, input } = args;
 
   const player = createSphereActor(gl, scene, {
     radius: 0.05,
@@ -34,7 +36,7 @@ export function createPlayer(args: {
     name: "Player",
   });
 
-  const playerController = new PlayerController(50, 1, 20);
+  const playerController = new PlayerController(input, 50, 1, 20);
   const rb = new RigidBody(10);
   rb.freezePosZ = true;
   const fluidDrag = new FluidDrag(scene, fluidSim, 0.05);

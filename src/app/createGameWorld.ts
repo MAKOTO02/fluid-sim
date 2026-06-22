@@ -1,4 +1,5 @@
 import type { FluidSim } from "../fluid/fluidSim";
+import type { MovementInput } from "../input/inputController";
 import { Renderer } from "../scene/renderer";
 import type { RenderAssets } from "../scene/renderAssets";
 import { Scene } from "../scene/scene";
@@ -29,8 +30,9 @@ export function createGameWorld(args: {
   fluidSim: FluidSim;
   renderAssets: RenderAssets;
   bulletStreamTexture: WebGLTexture;
+  input: MovementInput;
 }): GameWorld {
-  const { gl, canvas, fluidSim, renderAssets, bulletStreamTexture } = args;
+  const { gl, canvas, fluidSim, renderAssets, bulletStreamTexture, input } = args;
 
   const scene = new Scene();
   const renderer = new Renderer(gl);
@@ -75,6 +77,7 @@ export function createGameWorld(args: {
     canvas,
     material: renderAssets.materials.player,
     fluidSim,
+    input,
   });
 
   createDemoEnemy({

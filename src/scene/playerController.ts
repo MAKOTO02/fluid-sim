@@ -2,13 +2,13 @@ import type { Component } from "./component";
 import type { GameObject } from "./gameObject";
 import { vec3 } from "gl-matrix";
 import { RigidBody } from "./rigidBody";
+import type { MovementInput } from "../input/inputController";
 
 export class PlayerController implements Component {
   enabled = true;
   owner?: GameObject;
 
-  private input = { left: false, right: false, up: false, down: false };
-
+  private input: MovementInput;
   private thrustForce: number;
   private maxSpeed: number;
   private dragK: number;
@@ -16,34 +16,11 @@ export class PlayerController implements Component {
   private moveHeldTime = 0;
   private hadInputLastFrame = false;
 
-  constructor(thrustForce = 20.0, maxSpeed = 4.0, dragK = 10.0) {
+  constructor(input: MovementInput, thrustForce = 20.0, maxSpeed = 4.0, dragK = 10.0) {
+    this.input = input;
     this.thrustForce = thrustForce;
     this.maxSpeed = maxSpeed;
     this.dragK = dragK;
-
-    window.addEventListener("keydown", (e) => this.onKey(e, true));
-    window.addEventListener("keyup", (e) => this.onKey(e, false));
-  }
-
-  private onKey(e: KeyboardEvent, state: boolean) {
-    switch (e.key) {
-      case "a":
-      case "ArrowLeft":
-        this.input.left = state;
-        break;
-      case "d":
-      case "ArrowRight":
-        this.input.right = state;
-        break;
-      case "w":
-      case "ArrowUp":
-        this.input.up = state;
-        break;
-      case "s":
-      case "ArrowDown":
-        this.input.down = state;
-        break;
-    }
   }
 
   start(): void {}
@@ -56,10 +33,9 @@ export class PlayerController implements Component {
 
     // Movement direction.
     const dir = vec3.create();
-    if (this.input.left) dir[0] -= 1;
-    if (this.input.right) dir[0] += 1;
-    if (this.input.down) dir[1] -= 1;
-    if (this.input.up) dir[1] += 1;
+    const moveAxis = this.input.getMoveAxis();
+    dir[0] = moveAxis.x;
+    dir[1] = moveAxis.y;
 
     const len = Math.hypot(dir[0], dir[1]);
 

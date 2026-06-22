@@ -8,6 +8,7 @@ import { createBlit } from "./gl/frameBuffer";
 import { createFluidShaderPrograms } from "./fluid/fluidShaders";
 import { createFluidSim } from "./fluid/createFluidSim";
 import { bakeBulletVectorField } from "./fluid/bulletStreamField";
+import { InputController } from "./input/inputController";
 import { setupEnemyConfigs } from "./scene/enemyConfig";
 import { createRenderAssets } from "./scene/renderAssets";
 import { createGameWorld } from "./app/createGameWorld";
@@ -27,6 +28,7 @@ if(!gl) throw new Error("WebGL RenderingContext が見つかりません.");
 
 
 const shaderLib = new ShaderLibrary(gl);
+const inputController = new InputController();
 const renderAssets = createRenderAssets(shaderLib);
 setupEnemyConfigs(renderAssets.materials);
 
@@ -60,6 +62,7 @@ const {
   fluidSim,
   renderAssets,
   bulletStreamTexture,
+  input: inputController,
 });
 
 function initializeFrameTargets() {
