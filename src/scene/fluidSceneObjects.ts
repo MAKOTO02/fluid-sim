@@ -1,5 +1,8 @@
 import { vec3 } from "gl-matrix";
 import type { Program } from "../gl/program";
+import type { FluidSim } from "../fluid/fluidSim";
+import type { CameraComponent } from "./camera";
+import { FitToCamera } from "./fitToCamera";
 import { GameObject } from "./gameObject";
 import type { IMaterial } from "./material";
 import type { Mesh } from "./mesh";
@@ -7,7 +10,41 @@ import { MeshFilter } from "./meshFilter";
 import { MeshRenderer } from "./meshRenderer";
 import { createQuad } from "./primitives";
 import type { Scene } from "./scene";
+import { DyeVisualMaterial } from "./materials/dyeVisualMaterial";
 import { UnlitTextureMaterial } from "./materials/unlitTexMaterial";
+
+export type FluidPlaneObject = {
+  fluidPlane: GameObject;
+  dyeVisualMaterial: DyeVisualMaterial;
+  fitter: FitToCamera;
+};
+
+export function createFluidPlaneObject(args: {
+  scene: Scene;
+  gl: WebGLRenderingContext | WebGL2RenderingContext;
+  camera: CameraComponent;
+  mesh: Mesh;
+  program: Program;
+  fluidSim: FluidSim;
+  layer: number;
+}): FluidPlaneObject {
+  const { scene, gl, camera, mesh, program, fluidSim, layer } = args;
+
+  const fluidPlane = new GameObject("Quad");
+  fluidPlane.layer = layer;
+  const dyeVisualMaterial = new DyeVisualMaterial(
+    program,
+    fluidSim.getDyeTexture(),
+    fluidSim.getVelTexture()
+  );
+  const fitter = new FitToCamera(camera, 5, false);
+  fluidPlane.addComponent(new MeshFilter(mesh));
+  fluidPlane.addComponent(new MeshRenderer(gl, dyeVisualMaterial));
+  fluidPlane.addComponent(fitter);
+  scene.addObject(fluidPlane);
+
+  return { fluidPlane, dyeVisualMaterial, fitter };
+}
 
 export function createObstacleObject(args: {
   scene: Scene;

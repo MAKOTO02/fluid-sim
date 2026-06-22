@@ -1,9 +1,6 @@
 import { Scene } from "./scene/scene";
 import { Renderer } from "./scene/renderer";
 import { GameObject } from "./scene/gameObject";
-import { MeshFilter } from "./scene/meshFilter";
-import { MeshRenderer } from "./scene/meshRenderer";
-import { CameraComponent } from "./scene/camera";
 import { vec3, vec4 } from "gl-matrix"
 
 import sceneVert from "./shaders/sceneVertexShader.vert?raw";
@@ -13,7 +10,6 @@ import streamBulletFieldFrag from "./shaders/streamBulletField.frag?raw";
 import dyeVisualFrag from "./shaders/dyeVisual.frag?raw";
 import { getWebGLContext } from "./gl/glContext";
 import { UnlitColorMaterial } from "./scene/materials/unlitColorMaterial";
-import { DyeVisualMaterial } from "./scene/materials/dyeVisualMaterial";
 import { ShaderLibrary } from "./scene/shaderLibrary";
 
 import baseVert from "./shaders/baseVertexShader.vert?raw";
@@ -26,9 +22,9 @@ import { RigidBody } from "./scene/rigidBody";
 import { FluidEmitter } from "./scene/fluidEmitter";
 import { PlayerController } from "./scene/playerController";
 import { FluidDrag } from "./scene/fluidDrag";
-import { FitToCamera } from "./scene/fitToCamera";
 import { createQuad } from "./scene/primitives";
-import { createObstacleObject, createStreamObject } from "./scene/fluidSceneObjects";
+import { createFluidPlaneObject, createObstacleObject, createStreamObject } from "./scene/fluidSceneObjects";
+import { createMainCamera } from "./scene/cameraObject";
 import { createSphereActor } from "./scene/actor";
 import { createProjectileSphereLocal } from "./scene/projectileActor";
 import { LocalPathMover, makeStraightPath } from "./scene/projectileLocalPath";
@@ -157,32 +153,23 @@ const layers = {
   stream: 1 << 2,
 }
 
-// Camera GameObject.
-const cameraObj = new GameObject("MainCamera");
-cameraObj.transform.translate(vec3.fromValues(0, 0, 5));
-const cameraComp = cameraObj.addComponent(
-  new CameraComponent(gl, {
-    fov: Math.PI / 4,
-    aspect: canvas.width / canvas.height,
-    near: 0.1,
-    far: 1000,
-    yaw: 0,
-    pitch: 0,
-  })
-);
-cameraComp.cullingMask = layers.default;
-scene.addObject(cameraObj);
-scene.setMainCamera(cameraComp);
+const cameraComp = createMainCamera({
+  scene,
+  gl,
+  aspect: canvas.width / canvas.height,
+  layer: layers.default,
+});
 
 const quadMesh = createQuad(1);
-const fluidPlane = new GameObject("Quad");
-fluidPlane.layer = layers.default;
-let dyeVisualMaterial = new DyeVisualMaterial(dyeVisualProgram, fluidSim.getDyeTexture(), fluidSim.getVelTexture());
-const fitter = new FitToCamera(cameraComp, 5, false);
-fluidPlane.addComponent(new MeshFilter(quadMesh));
-fluidPlane.addComponent(new MeshRenderer(gl, dyeVisualMaterial));
-fluidPlane.addComponent(fitter);
-scene.addObject(fluidPlane);
+const { dyeVisualMaterial, fitter } = createFluidPlaneObject({
+  scene,
+  gl,
+  camera: cameraComp,
+  mesh: quadMesh,
+  program: dyeVisualProgram,
+  fluidSim,
+  layer: layers.default,
+});
 
 createObstacleObject({
   scene,
