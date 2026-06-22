@@ -2,6 +2,7 @@ import type { FluidSim } from "../fluid/fluidSim";
 import type { GameInput } from "../input/inputController";
 import { Renderer } from "../scene/renderer";
 import type { RenderAssets } from "../scene/renderAssets";
+import type { GameObject } from "../scene/gameObject";
 import { Scene } from "../scene/scene";
 import { createMainCamera } from "../scene/cameraObject";
 import {
@@ -20,6 +21,7 @@ import type { FitToCamera } from "../scene/fitToCamera";
 export type GameWorld = {
   scene: Scene;
   renderer: Renderer;
+  player: GameObject;
   dyeVisualMaterial: DyeVisualMaterial;
   fitter: FitToCamera;
 };
@@ -102,6 +104,7 @@ export function createGameWorld(args: {
   return {
     scene,
     renderer,
+    player,
     dyeVisualMaterial,
     fitter,
   };
