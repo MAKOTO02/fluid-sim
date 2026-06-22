@@ -11,7 +11,6 @@ import UnlitColorFrag from "./shaders/sceneShader.frag?raw";
 import UnlitTexFrag from "./shaders/unlitTexShader.frag?raw";
 import streamBulletFieldFrag from "./shaders/streamBulletField.frag?raw";
 import dyeVisualFrag from "./shaders/dyeVisual.frag?raw";
-import { UnlitTextureMaterial } from "./scene/materials/unlitTexMaterial";
 import { getWebGLContext } from "./gl/glContext";
 import { UnlitColorMaterial } from "./scene/materials/unlitColorMaterial";
 import { DyeVisualMaterial } from "./scene/materials/dyeVisualMaterial";
@@ -29,6 +28,7 @@ import { PlayerController } from "./scene/playerController";
 import { FluidDrag } from "./scene/fluidDrag";
 import { FitToCamera } from "./scene/fitToCamera";
 import { createQuad } from "./scene/primitives";
+import { createObstacleObject, createStreamObject } from "./scene/fluidSceneObjects";
 import { createSphereActor } from "./scene/actor";
 import { createProjectileSphereLocal } from "./scene/projectileActor";
 import { LocalPathMover, makeStraightPath } from "./scene/projectileLocalPath";
@@ -184,25 +184,21 @@ fluidPlane.addComponent(new MeshRenderer(gl, dyeVisualMaterial));
 fluidPlane.addComponent(fitter);
 scene.addObject(fluidPlane);
 
-// obstacle
-const obstacle = new GameObject("obstacle");
-obstacle.layer = layers.obstacle;
-obstacle.addComponent(new MeshFilter(quadMesh));
-obstacle.addComponent(new MeshRenderer(gl, obstacleMaterial));
-obstacle.transform.setScale(vec3.fromValues(0.5, 0.5, 0.5));
-obstacle.transform.translate(vec3.fromValues(-2, -1.5, 0));
+createObstacleObject({
+  scene,
+  gl,
+  mesh: quadMesh,
+  material: obstacleMaterial,
+  layer: layers.obstacle,
+});
 
-scene.addObject(obstacle);
-
-//stream
-const streamMesh = createQuad(9);
-const streamObj = new GameObject("stream");
-const streamTexMaterial = new UnlitTextureMaterial(unlitTexProgram, bulletStreamTexture);
-streamObj.addComponent(new MeshFilter(streamMesh));
-streamObj.addComponent(new MeshRenderer(gl, streamTexMaterial));
-streamObj.layer = layers.stream;
-streamObj.transform.translate(vec3.fromValues(0, 0, 0));
-scene.addObject(streamObj);
+createStreamObject({
+  scene,
+  gl,
+  program: unlitTexProgram,
+  texture: bulletStreamTexture,
+  layer: layers.stream,
+});
 
 const player = createSphereActor(gl, scene, {
   radius: 0.05,
