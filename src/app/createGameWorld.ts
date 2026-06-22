@@ -3,6 +3,7 @@ import type { GameInput } from "../input/inputController";
 import { Renderer } from "../scene/renderer";
 import type { RenderAssets } from "../scene/renderAssets";
 import type { GameObject } from "../scene/gameObject";
+import { createDemoStage, type GameStage } from "../stage/demoStage";
 import { Scene } from "../scene/scene";
 import { createMainCamera } from "../scene/cameraObject";
 import {
@@ -12,15 +13,13 @@ import {
 } from "../scene/fluidSceneObjects";
 import { SceneLayers } from "../scene/layers";
 import { createQuad } from "../scene/primitives";
-import { createPlayer } from "../scene/playerFactory";
-import { createDemoEnemy } from "../scene/enemyFactory";
-import { PlayerShooting } from "../scene/playerShooting";
 import type { DyeVisualMaterial } from "../scene/materials/dyeVisualMaterial";
 import type { FitToCamera } from "../scene/fitToCamera";
 
 export type GameWorld = {
   scene: Scene;
   renderer: Renderer;
+  stage: GameStage;
   player: GameObject;
   dyeVisualMaterial: DyeVisualMaterial;
   fitter: FitToCamera;
@@ -73,7 +72,7 @@ export function createGameWorld(args: {
     layer: SceneLayers.stream,
   });
 
-  const { player, splatForce } = createPlayer({
+  const stage = createDemoStage({
     scene,
     gl,
     canvas,
@@ -81,30 +80,12 @@ export function createGameWorld(args: {
     fluidSim,
     input,
   });
-
-  createDemoEnemy({
-    scene,
-    gl,
-    canvas,
-    material: renderAssets.materials.player,
-    fluidSim,
-    target: player.transform,
-  });
-
-  player.addComponent(new PlayerShooting({
-    gl,
-    scene,
-    input,
-    material: renderAssets.materials.player,
-    fluidSim,
-    canvas,
-    splatForce,
-  }));
 
   return {
     scene,
     renderer,
-    player,
+    stage,
+    player: stage.player,
     dyeVisualMaterial,
     fitter,
   };
