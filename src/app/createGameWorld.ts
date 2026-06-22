@@ -6,11 +6,7 @@ import type { GameObject } from "../scene/gameObject";
 import { createDemoStage, type GameStage } from "../stage/demoStage";
 import { Scene } from "../scene/scene";
 import { createMainCamera } from "../scene/cameraObject";
-import {
-  createFluidPlaneObject,
-  createObstacleObject,
-  createStreamObject,
-} from "../scene/fluidSceneObjects";
+import { createFluidPlaneObject } from "../scene/fluidSceneObjects";
 import { SceneLayers } from "../scene/layers";
 import { createQuad } from "../scene/primitives";
 import type { DyeVisualMaterial } from "../scene/materials/dyeVisualMaterial";
@@ -56,27 +52,14 @@ export function createGameWorld(args: {
     layer: SceneLayers.default,
   });
 
-  createObstacleObject({
-    scene,
-    gl,
-    mesh: quadMesh,
-    material: renderAssets.obstacleMaterial,
-    layer: SceneLayers.obstacle,
-  });
-
-  createStreamObject({
-    scene,
-    gl,
-    program: renderAssets.unlitTexProgram,
-    texture: bulletStreamTexture,
-    layer: SceneLayers.stream,
-  });
-
   const stage = createDemoStage({
     scene,
     gl,
     canvas,
     material: renderAssets.materials.player,
+    obstacleMaterial: renderAssets.obstacleMaterial,
+    unlitTexProgram: renderAssets.unlitTexProgram,
+    bulletStreamTexture,
     fluidSim,
     input,
   });
