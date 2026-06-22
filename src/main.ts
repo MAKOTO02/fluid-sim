@@ -1,6 +1,6 @@
 import { Scene } from "./scene/scene";
 import { Renderer } from "./scene/renderer";
-import { vec3, vec4 } from "gl-matrix"
+import { vec4 } from "gl-matrix"
 
 import sceneVert from "./shaders/sceneVertexShader.vert?raw";
 import UnlitColorFrag from "./shaders/sceneShader.frag?raw";
@@ -20,12 +20,11 @@ import { createFluidSim } from "./fluid/createFluidSim";
 import { createQuad } from "./scene/primitives";
 import { createFluidPlaneObject, createObstacleObject, createStreamObject } from "./scene/fluidSceneObjects";
 import { createMainCamera } from "./scene/cameraObject";
-import { createProjectileSphereLocal } from "./scene/projectileActor";
-import { makeStraightPath } from "./scene/projectileLocalPath";
 import { createGameMaterials, createGamePrograms } from "./scene/gameAssets";
 import { setupEnemyConfigs } from "./scene/enemyConfig";
 import { createPlayer } from "./scene/playerFactory";
 import { createDemoEnemy } from "./scene/enemyFactory";
+import { setupPlayerShooting } from "./scene/playerShooting";
 
 const canvas = document.querySelector("canvas")!;
 const dpr = window.devicePixelRatio || 1;
@@ -197,6 +196,16 @@ createDemoEnemy({
   target: player.transform,
 });
 
+setupPlayerShooting({
+  canvas,
+  gl,
+  scene,
+  player,
+  material: materials.player,
+  fluidSim,
+  splatForce,
+});
+
 // Initialize render targets.
 function init(){
   scene.update(0);
@@ -277,54 +286,6 @@ function loop(now: number) {
 }
 requestAnimationFrame(loop);
 
-
-canvas.addEventListener("click", (e) => {
-  const cam = scene.MainCamera;
-  if (!cam) return;
-
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-
-  // Screen coordinates to UV.
-  const uClick = x / rect.width;
-  const vClick = 1 - (y / rect.height);
-
-  // Convert the click position to world coordinates on the player's plane.
-  const playerPos = player.transform.getWorldPosition();
-  const clickWorld = cam.screenUVToWorldOnPlane(uClick, vClick, playerPos[2]);
-  if (!clickWorld) return;
-
-  // dir = click position - player position in world space.
-  const dir = vec3.create();
-  vec3.sub(dir, clickWorld, playerPos);
-  const len = vec3.length(dir);
-  if (len === 0) return;
-
-  // Create a straight local path. For root bullets, local space matches world space.
-  const speed = 3.0; // World-space speed.
-  const localPath = makeStraightPath(dir, speed);
-
-  const bullet = createProjectileSphereLocal(gl, scene, {
-    radius: 0.04,
-    material: materials.player,
-    colliderLayer: "bullet",
-    hitLayers: ["enemy"],
-    lifeSec: 5.0,
-    localPath,
-    name: "PlayerBullet",
-    fluid: {
-      enabled: true,
-      fluidSim: fluidSim,
-      canvas: canvas,
-      strength: splatForce,
-      color: { r: 0, g: 1, b: 0 },
-    },
-  });
-
-  // Spawn from the player's current position.
-  bullet.transform.setPosition(playerPos);
-});
 
 function scaleByPixelRatio(input: number): number {
   const pixelRatio = window.devicePixelRatio || 1;
