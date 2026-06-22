@@ -1,4 +1,4 @@
-import { GameLoop } from "./app/gameLoop";
+import { GameController } from "./app/gameController";
 import { handleCanvasResize, initializeObstacleTarget, updateFluidFrame } from "./app/frameUpdate";
 
 import { getWebGLContext } from "./gl/glContext";
@@ -72,8 +72,6 @@ function initializeFrameTargets() {
   });
 }
 
-initializeFrameTargets();
-
 function updateFrame(dt: number) {
   handleCanvasResize({
     canvas,
@@ -94,5 +92,9 @@ function updateFrame(dt: number) {
   });
 }
 
-const gameLoop = new GameLoop(updateFrame);
-gameLoop.start();
+const gameController = new GameController({
+  onStart: initializeFrameTargets,
+  onFrame: updateFrame,
+});
+
+gameController.start();
