@@ -2,6 +2,7 @@ import { Scene } from "./scene/scene";
 import { Renderer } from "./scene/renderer";
 import { vec4 } from "gl-matrix"
 import { GameLoop } from "./app/gameLoop";
+import { handleCanvasResize, initializeObstacleTarget, updateFluidFrame } from "./app/frameUpdate";
 
 import sceneVert from "./shaders/sceneVertexShader.vert?raw";
 import UnlitColorFrag from "./shaders/sceneShader.frag?raw";
@@ -140,93 +141,37 @@ setupPlayerShooting({
   splatForce,
 });
 
-// Initialize render targets.
-function init(){
-  scene.update(0);
-  const cam = scene.MainCamera;
-  if(cam){
-    const prevMask = cam.cullingMask;
-    const obstacleTarget = fluidSim.getObstacleTarget();
-    cam.cullingMask = layers.obstacle;
-
-    const prevFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
-    const prevViewport = gl.getParameter(gl.VIEWPORT);
-
-    renderer.render(scene, cam, obstacleTarget);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, prevFbo);
-    gl.viewport(prevViewport[0], prevViewport[1], prevViewport[2], prevViewport[3]);
-    cam.cullingMask = prevMask;
-  }
+function initializeFrameTargets() {
+  initializeObstacleTarget({
+    gl,
+    scene,
+    renderer,
+    fluidSim,
+    obstacleLayer: layers.obstacle,
+  });
 }
 
-init();
+initializeFrameTargets();
 
-let fluidTimer = 0;
-const fps = 30;
 function updateFrame(dt: number) {
-  const resized = resizeCanvas(canvas);
-  if (resized) {
-    const w = canvas.width;
-    const h = canvas.height;
+  handleCanvasResize({
+    canvas,
+    scene,
+    fluidSim,
+    fitter,
+    onResized: initializeFrameTargets,
+  });
 
-    const cam = scene.MainCamera;
-    if (cam) {
-      cam.setAspect(w / h);
-    }
-
-    // Notify FluidSim so it can resize its FBOs.
-    fluidSim.resize(w, h);
-
-    fitter.updateLocalTransform();
-    init();
-  }
-
-  scene.update(dt);
-  const cam = scene.MainCamera;
-  if(cam){
-    fluidTimer += dt;
-    if(fluidTimer < 1 / fps){
-      renderer.render(scene, cam);
-    }
-    const prevMask = cam.cullingMask;
-    const prevFbo = gl.getParameter(gl.FRAMEBUFFER_BINDING);
-    const prevViewport = gl.getParameter(gl.VIEWPORT);
-
-    // Prepare stream target.
-    const streamTraget = fluidSim.getStreamTarget();
-    cam.cullingMask = layers.stream;
-    renderer.render(scene, cam, streamTraget);
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, prevFbo);
-    gl.viewport(prevViewport[0], prevViewport[1], prevViewport[2], prevViewport[3]);
-    cam.cullingMask = prevMask;
-
-    // Update the fluid simulation.
-    //fluidSim.setPaused(true);
-    fluidSim.step(dt);
-    dyeVisualMaterial.setTextures(fluidSim.getDyeTexture(), fluidSim.getVelTexture());
-
-    renderer.render(scene, cam);
-  }
+  updateFluidFrame({
+    gl,
+    scene,
+    renderer,
+    fluidSim,
+    dyeVisualMaterial,
+    streamLayer: layers.stream,
+    dt,
+  });
 }
 
 const gameLoop = new GameLoop(updateFrame);
 gameLoop.start();
-
-
-function scaleByPixelRatio(input: number): number {
-  const pixelRatio = window.devicePixelRatio || 1;
-  return Math.floor(input * pixelRatio);
-}
-
-function resizeCanvas(canvas: HTMLCanvasElement): boolean {
-  const width = scaleByPixelRatio(canvas.clientWidth);
-  const height = scaleByPixelRatio(canvas.clientHeight);
-  if (canvas.width !== width || canvas.height !== height) {
-    canvas.width = width;
-    canvas.height = height;
-    return true;
-  }
-  return false;
-}
