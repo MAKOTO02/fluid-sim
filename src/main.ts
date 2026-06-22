@@ -18,20 +18,11 @@ import { DyeVisualMaterial } from "./scene/materials/dyeVisualMaterial";
 import { ShaderLibrary } from "./scene/shaderLibrary";
 
 import baseVert from "./shaders/baseVertexShader.vert?raw";
-import curl from "./shaders/curlShader.frag?raw";
-import vorticity from "./shaders/vorticityShader.frag?raw";
-import physics from "./shaders/physicsShader.frag?raw";
-import divergence from "./shaders/divergenceShader.frag?raw";
-import pressure from "./shaders/pressureShader.frag?raw";
-import subtractGradient from "./shaders/subtractGradientShader.frag?raw";
-import advection from "./shaders/advectionShader.frag?raw";
-import clear from "./shaders/clearShader.frag?raw";
-import splat from "./shaders/splatShader.frag?raw";
-import copy from "./shaders/copyShader.frag?raw";
 
 import { type FBO , createFBO} from "./gl/frameBuffer";
-import { FluidSim } from "./fluid/fluidSim";
-import { FluidFormatResolver } from "./fluid/fluidFormatResolver";
+import type { FluidFormatResolver } from "./fluid/fluidFormatResolver";
+import { createFluidShaderPrograms } from "./fluid/fluidShaders";
+import { createFluidSim } from "./fluid/createFluidSim";
 import { RigidBody } from "./scene/rigidBody";
 import { FluidEmitter } from "./scene/fluidEmitter";
 import { PlayerController } from "./scene/playerController";
@@ -141,84 +132,17 @@ function bakeBulletVectorField(
 }
 
 const fluidShaderLib = new ShaderLibrary(gl);
-const curlProgram = fluidShaderLib.load("curl", baseVert, curl);
-const vorticityProgram = fluidShaderLib.load("vorticity", baseVert, vorticity);
-const physicsProgram = fluidShaderLib.load("physics", baseVert, physics);
-const divergenceProgram = fluidShaderLib.load("divergence", baseVert, divergence);
-const pressureProgram = fluidShaderLib.load("pressure", baseVert, pressure);
-const subtractGradientProgram = fluidShaderLib.load("subtractGradient", baseVert, subtractGradient);
-const advectionProgram = fluidShaderLib.load("advection", baseVert, advection);
-const clearProgram = fluidShaderLib.load("clear", baseVert, clear);
-const splatProgram  = fluidShaderLib.load("splat", baseVert, splat);
+const { fluidShaders, copyProgram } = createFluidShaderPrograms(fluidShaderLib);
 
-const fluidShaders = {
-  curl: curlProgram,
-  vorticity: vorticityProgram,
-  physics: physicsProgram,
-  divergence: divergenceProgram,
-  pressure: pressureProgram,
-  subtractGradient: subtractGradientProgram,
-  advection: advectionProgram,
-  clear: clearProgram,
-  splat: splatProgram,
-}
-
-const fluidConfig = {
-  CURL: 30,
-  GRAVITY: 0,
-  PRESSURE: 0.8,
-  PRESSURE_ITERATIONS: 15,
-  VELOCITY_DISSIPATION: 0.2,
-  DENSITY_DISSIPATION: 2.2,
-  SPLAT_RADIUS: 0.01,
-  LOGIC_DISSIPATION: 2.2,
-}
-function getResolution (resolution: number) {
-  let aspectRatio = gl.drawingBufferWidth / gl.drawingBufferHeight;
-  if (aspectRatio < 1)
-    aspectRatio = 1.0 / aspectRatio;
-
-  let min = Math.round(resolution);
-  let max = Math.round(resolution * aspectRatio);
-
-  if (gl.drawingBufferWidth > gl.drawingBufferHeight)
-    return { width: max, height: min };
-  else
-    return { width: min, height: max };
-}
-
-const resolution = 256;
-let simRes = getResolution(resolution);
-const dyeResolution = 1024;
-let dyeRes = getResolution(dyeResolution);
-
-const resolver = new FluidFormatResolver(gl, ext);
-
-const formats = {
-  vel: resolver.velocityFormat(),
-  dye: resolver.dyeFormat(),
-  pressure: resolver.pressureFormat(),
-  stream: resolver.streamFormat(),
-  obstacle: resolver.obstacleFormat(),
-};
+const { fluidSim, resolver } = createFluidSim({
+  gl,
+  ext,
+  blit,
+  fluidShaders,
+  copyProgram,
+});
 
 const bulletStreamTexture = bakeBulletVectorField(gl, shaderLib, blit, resolver);
-const copyProgram = fluidShaderLib.load("copy", baseVert, copy)
-
-const fluidSim = new FluidSim(
-  gl, 
-  ext, 
-  blit, 
-  fluidShaders, 
-  fluidConfig,
-  simRes.width,
-  simRes.height,
-  dyeRes.width,
-  dyeRes.height,
-  formats,
-  copyProgram
-);
-
 
 // Reset GL state.
 gl.bindFramebuffer(gl.FRAMEBUFFER, null); 
