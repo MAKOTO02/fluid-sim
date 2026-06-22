@@ -28,6 +28,7 @@ type FluidConfig = {
     DENSITY_DISSIPATION: number;
     SPLAT_RADIUS: number;
     LOGIC_DISSIPATION: number;
+    STREAM_FORCE_SCALE: number;
 };
 
 export class FluidSim{
@@ -308,12 +309,14 @@ export class FluidSim{
         const locAccel = getOptionalUniform(prog, "uAccel");
         const locGravity  = getOptionalUniform(prog, "uGravity");
         const locStreamMask = getOptionalUniform(prog, "uStreamForce");
+        const locStreamForceScale = getOptionalUniform(prog, "uStreamForceScale");
         
         this.gl.uniform1i(locuVelocity, this.velocity.read.attach(0));
         this.gl.uniform1f(locDt, dt);
         if(locGravity!=null) this.gl.uniform2f(locGravity, 0.0, -this.config.GRAVITY); 
         if(locAccel!=null) this.gl.uniform2f(locAccel, accel.x, accel.y);
         if(locStreamMask!=null) this.gl.uniform1i(locStreamMask, this.stream.attach(1))
+        if(locStreamForceScale!=null) this.gl.uniform1f(locStreamForceScale, this.config.STREAM_FORCE_SCALE);
 
         this.blit(this.velocity.write);
         this.velocity.swap();

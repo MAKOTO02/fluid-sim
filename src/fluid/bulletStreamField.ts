@@ -5,6 +5,8 @@ import type { FluidFormatResolver } from "./fluidFormatResolver";
 import baseVert from "../shaders/baseVertexShader.vert?raw";
 import streamBulletFieldFrag from "../shaders/streamBulletField.frag?raw";
 
+const BULLET_STREAM_BAKE_STRENGTH = 0.0003;
+
 export function bakeBulletVectorField(
   gl: WebGLRenderingContext | WebGL2RenderingContext,
   shaderLib: ShaderLibrary,
@@ -31,7 +33,7 @@ export function bakeBulletVectorField(
 
   prog.bind();
   const locStrength = prog.uniforms.get("uStrength");
-  if (locStrength) gl.uniform1f(locStrength, 0.0003);
+  if (locStrength) gl.uniform1f(locStrength, BULLET_STREAM_BAKE_STRENGTH);
 
   blit(fbo);
 

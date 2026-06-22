@@ -10,6 +10,7 @@ uniform vec2 uGravity;  // Conceptually like (0.0, -9.8); scale is tuned for gam
 uniform vec2 uAccel;
 uniform sampler2D uObstacle;
 uniform sampler2D uStreamForce;
+uniform float uStreamForceScale;
 
 
 void main () {
@@ -18,7 +19,7 @@ void main () {
     vec2 streamMask = texture2D(uStreamForce, vUv).xy;
     v += uGravity * dt;      // v^{*} = v^n + dt * g
     v -= uAccel * dt;
-    v += streamMask * dt * 1000000.0;   // Temporarily strong; tune stream strength later.
+    v += streamMask * dt * uStreamForceScale;
 
     // Prevent runaway velocity.
     v = clamp(v, vec2(-1000.0), vec2(1000.0));
