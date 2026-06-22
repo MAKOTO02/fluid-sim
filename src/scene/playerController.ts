@@ -3,6 +3,7 @@ import type { GameObject } from "./gameObject";
 import { vec3 } from "gl-matrix";
 import { RigidBody } from "./rigidBody";
 import type { MovementInput } from "../input/inputController";
+import { clamp01, lerp } from "../math/easing";
 
 export class PlayerController implements Component {
   enabled = true;
@@ -86,8 +87,7 @@ export class PlayerController implements Component {
     }
 
     const s = (t - rise) / fall;
-    // Ease down from 1.3 toward 0.7.
-    const k = 1.3 - 0.6 * Math.min(s, 1.0);
+    const k = lerp(1.3, 0.7, clamp01(s));
     return Math.max(0.6, k);
   }
 }
