@@ -1,6 +1,5 @@
 import { Scene } from "./scene/scene";
 import { Renderer } from "./scene/renderer";
-import { GameObject } from "./scene/gameObject";
 import { vec3, vec4 } from "gl-matrix"
 
 import sceneVert from "./shaders/sceneVertexShader.vert?raw";
@@ -18,21 +17,15 @@ import { type FBO , createFBO} from "./gl/frameBuffer";
 import type { FluidFormatResolver } from "./fluid/fluidFormatResolver";
 import { createFluidShaderPrograms } from "./fluid/fluidShaders";
 import { createFluidSim } from "./fluid/createFluidSim";
-import { RigidBody } from "./scene/rigidBody";
-import { FluidEmitter } from "./scene/fluidEmitter";
-import { PlayerController } from "./scene/playerController";
-import { FluidDrag } from "./scene/fluidDrag";
 import { createQuad } from "./scene/primitives";
 import { createFluidPlaneObject, createObstacleObject, createStreamObject } from "./scene/fluidSceneObjects";
 import { createMainCamera } from "./scene/cameraObject";
-import { createSphereActor } from "./scene/actor";
 import { createProjectileSphereLocal } from "./scene/projectileActor";
-import { LocalPathMover, makeStraightPath } from "./scene/projectileLocalPath";
-import { ScreenBoundsLimiter } from "./scene/screenBoundsLimiter";
-import { Enemy } from "./scene/enemy";
-import { setupEnemyStrategyFactories } from "./scene/enemyStrategy";
+import { makeStraightPath } from "./scene/projectileLocalPath";
 import { createGameMaterials, createGamePrograms } from "./scene/gameAssets";
 import { setupEnemyConfigs } from "./scene/enemyConfig";
+import { createPlayer } from "./scene/playerFactory";
+import { createDemoEnemy } from "./scene/enemyFactory";
 
 const canvas = document.querySelector("canvas")!;
 const dpr = window.devicePixelRatio || 1;
@@ -187,55 +180,22 @@ createStreamObject({
   layer: layers.stream,
 });
 
-const player = createSphereActor(gl, scene, {
-  radius: 0.05,
+const { player, splatForce } = createPlayer({
+  scene,
+  gl,
+  canvas,
   material: materials.player,
-  layer: "player",
-  hitScale: 0.3,
-  name: "Player",
+  fluidSim,
 });
 
-const playerController = new PlayerController(50, 1, 20);
-const rb = new RigidBody(10);
-rb.freezePosZ = true;
-const fluidDrag = new FluidDrag(scene, fluidSim, 0.05);
-player.addComponent(playerController);
-player.addComponent(rb);
-player.addComponent(fluidDrag);
-
-player.addComponent(new ScreenBoundsLimiter(scene, 0.01));
-
-const emitter = new GameObject("emitter");
-const SPLAT_FORCE = 2000;
-const fluidEmitter = new FluidEmitter(scene, fluidSim, canvas, SPLAT_FORCE, { r: 0, g: 0, b: 0.5 });
-
-emitter.addComponent(fluidEmitter);
-emitter.transform.setParent(player.transform);
-
-//scene.addObject(player);
-player.transform.translate(vec3.fromValues(-2, -1.5, 0));
-scene.addObject(emitter);
-
-// enemy
-const enemyCenter = new GameObject();
-enemyCenter.transform.translate(vec3.fromValues(1, 1, 0));
-scene.addObject(enemyCenter);
-const enemy = new GameObject("Enemy");
-enemy.transform.setParent(enemyCenter.transform);
-enemy.addComponent(new LocalPathMover(t => {return {x: Math.cos(t), y: Math.sin(t), z: 0}}))
-const ctx = {
-  gl: gl,
-  scene: scene,
-  canvas: canvas,
+createDemoEnemy({
+  scene,
+  gl,
+  canvas,
   material: materials.player,
-  fluid: fluidSim
-};
-setupEnemyStrategyFactories(ctx);
-const enemyComp = new Enemy(0, ctx);
-enemyComp.setTarget(player.transform);
-enemy.addComponent(enemyComp);
-enemyComp.createVisual(gl, scene);
-scene.addObject(enemy);
+  fluidSim,
+  target: player.transform,
+});
 
 // Initialize render targets.
 function init(){
@@ -357,7 +317,7 @@ canvas.addEventListener("click", (e) => {
       enabled: true,
       fluidSim: fluidSim,
       canvas: canvas,
-      strength: SPLAT_FORCE,
+      strength: splatForce,
       color: { r: 0, g: 1, b: 0 },
     },
   });
