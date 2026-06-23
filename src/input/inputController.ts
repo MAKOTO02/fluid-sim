@@ -28,6 +28,7 @@ export class InputController implements GameInput {
   private readonly shootCommands: ShootCommand[] = [];
   private readonly keyboardTarget: Window;
   private readonly pointerTarget?: HTMLElement;
+  private enabled = false;
 
   constructor(options: InputControllerOptions = {}) {
     this.keyboardTarget = options.keyboardTarget ?? window;
@@ -38,7 +39,27 @@ export class InputController implements GameInput {
     this.pointerTarget?.addEventListener("click", this.onClick);
   }
 
+  enable() {
+    this.clearState();
+    this.enabled = true;
+  }
+
+  disable() {
+    this.enabled = false;
+    this.clearState();
+  }
+
+  setEnabled(enabled: boolean): void{
+    this.enabled = enabled;
+  }
+
+  isEnabled(): boolean{
+    return this.enabled;
+  }
+
   getMoveAxis(): MoveAxis {
+    if (!this.enabled) return { x: 0, y: 0 };
+
     let x = 0;
     let y = 0;
 
@@ -51,6 +72,11 @@ export class InputController implements GameInput {
   }
 
   consumeShootCommands(): ShootCommand[] {
+    if (!this.enabled) {
+      this.shootCommands.length = 0;
+      return [];
+    }
+
     return this.shootCommands.splice(0);
   }
 
@@ -66,6 +92,8 @@ export class InputController implements GameInput {
   }
 
   private onKeyDown = (event: KeyboardEvent) => {
+    if (!this.enabled) return;
+
     const key = this.normalizeKey(event.key);
     if (!this.isMovementKey(key)) return;
 
@@ -74,6 +102,8 @@ export class InputController implements GameInput {
   };
 
   private onKeyUp = (event: KeyboardEvent) => {
+    if (!this.enabled) return;
+
     const key = this.normalizeKey(event.key);
     if (!this.isMovementKey(key)) return;
 
@@ -82,10 +112,11 @@ export class InputController implements GameInput {
   };
 
   private onBlur = () => {
-    this.pressedKeys.clear();
+    this.clearState();
   };
 
   private onClick = (event: MouseEvent) => {
+    if (!this.enabled) return;
     if (!this.pointerTarget) return;
 
     const rect = this.pointerTarget.getBoundingClientRect();
@@ -113,5 +144,10 @@ export class InputController implements GameInput {
       key === "arrowdown" ||
       key === "arrowup"
     );
+  }
+
+  private clearState() {
+    this.pressedKeys.clear();
+    this.shootCommands.length = 0;
   }
 }

@@ -115,6 +115,7 @@ const gameController = new GameController({
 const startMenu = new StartMenu({
   onStart: () => {
     startMenu.hide();
+    inputController.enable();
     gameController.start();
   },
 });
