@@ -22,7 +22,8 @@ export function formatWorldSnapshot(snapshot: WorldSnapshot): string {
 
 function formatObject(obj: GameObjectSnapshot) {
   const velocity = obj.velocity ? ` vel=${formatVec3(obj.velocity)}` : "";
-  return `#${obj.id} ${obj.name} pos=${formatVec3(obj.position)} scale=${formatVec3(obj.localScale)}${velocity}`;
+  const health = obj.health ? ` hp=${formatNumber(obj.health.current)}/${formatNumber(obj.health.max)}` : "";
+  return `#${obj.id} ${obj.name} pos=${formatVec3(obj.position)} scale=${formatVec3(obj.localScale)}${velocity}${health}`;
 }
 
 function formatVec3(v: Vec3Snapshot) {

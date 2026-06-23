@@ -1,6 +1,7 @@
 import { vec3 } from "gl-matrix";
 import type { FluidSim } from "../fluid/fluidSim";
 import { Enemy } from "./enemy";
+import { Health } from "./health";
 import type { IMaterial } from "./material";
 import { GameObject } from "./gameObject";
 import { LocalPathMover } from "./projectileLocalPath";
@@ -39,6 +40,7 @@ export function createDemoEnemy(args: {
 
   const enemyComp = new Enemy(0, ctx);
   enemyComp.setTarget(target);
+  enemy.addComponent(new Health(enemyComp.config.hitPoint));
   enemy.addComponent(enemyComp);
   enemyComp.createVisual(gl, scene);
   scene.addObject(enemy);

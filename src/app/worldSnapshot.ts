@@ -1,6 +1,7 @@
 import type { GameStage } from "../stage/demoStage";
 import type { GameWorld } from "./createGameWorld";
 import type { GameObject } from "../scene/gameObject";
+import { Health, type HealthSnapshot } from "../scene/health";
 import { RigidBody } from "../scene/rigidBody";
 
 export type Vec3Snapshot = [number, number, number];
@@ -15,6 +16,7 @@ export type GameObjectSnapshot = {
   localPosition: Vec3Snapshot;
   localScale: Vec3Snapshot;
   velocity?: Vec3Snapshot;
+  health?: HealthSnapshot;
 };
 
 export type StageSnapshot = {
@@ -45,6 +47,7 @@ export function createStageSnapshot(stage: GameStage): StageSnapshot {
 
 export function createGameObjectSnapshot(obj: GameObject): GameObjectSnapshot {
   const rb = obj.getComponent(RigidBody);
+  const health = obj.getComponent(Health);
 
   return {
     id: obj.id,
@@ -56,6 +59,7 @@ export function createGameObjectSnapshot(obj: GameObject): GameObjectSnapshot {
     localPosition: toVec3Snapshot(obj.transform.position),
     localScale: toVec3Snapshot(obj.transform.scale),
     velocity: rb ? toVec3Snapshot(rb.velocity) : undefined,
+    health: health?.getSnapshot(),
   };
 }
 
