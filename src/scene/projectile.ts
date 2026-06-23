@@ -2,7 +2,7 @@
 import type { Component } from "./component";
 import type { GameObject } from "./gameObject";
 import type { Scene } from "./scene";
-import { SphereCollider, type CollisionLayer } from "./collider";
+import { SphereCollider, type Collider, type CollisionLayer } from "./collider";
 
 export class Projectile implements Component {
   enabled = true;
@@ -74,7 +74,7 @@ export class Projectile implements Component {
   }
 
   // Called from the collider.
-  private onTrigger(other: SphereCollider) {
+  private onTrigger(other: Collider) {
     if (!this.owner) return;
 
     // Keep target-layer filtering on the projectile side as well.

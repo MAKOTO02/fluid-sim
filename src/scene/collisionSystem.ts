@@ -19,8 +19,6 @@ export class CollisionSystem {
       const ao = a.owner;
       if (!a.enabled || !ao) continue;
 
-      const pa = ao.transform.getWorldPosition();
-
       for (let j = i + 1; j < n; j++) {
         const b = this.colliders[j];
         const bo = b.owner;
@@ -29,13 +27,7 @@ export class CollisionSystem {
         // Add layer-mask filtering here if needed.
         if (!this.shouldCollide(a, b)) continue;
 
-        const pb = bo.transform.getWorldPosition();
-        const dx = pa[0] - pb[0];
-        const dy = pa[1] - pb[1];
-        const dz = pa[2] - pb[2]; // Works in 3D when z is aligned.
-
-        const r = a.radius + b.radius;
-        if (dx*dx + dy*dy + dz*dz <= r*r) {
+        if (this.areIntersecting(a, b)) {
           // Trigger pairs only emit events.
           if (a.isTrigger && b.isTrigger) {
             a.onTriggerEnter?.(b);
@@ -50,5 +42,9 @@ export class CollisionSystem {
   private shouldCollide(_a: Collider, _b: Collider): boolean {
     // Add layer-pair rules here if broader collision filtering is needed.
     return true;
+  }
+
+  private areIntersecting(a: Collider, b: Collider): boolean {
+    return a.intersects(b) || b.intersects(a);
   }
 }

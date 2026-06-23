@@ -39,22 +39,22 @@ export class InputController implements GameInput {
     this.pointerTarget?.addEventListener("click", this.onClick);
   }
 
-  enable() {
+  enable() : void{
     this.setEnabled(true);
   }
 
-  disable() {
+  disable() : void{
     this.setEnabled(false);
   }
 
-  setEnabled(enabled: boolean) {
+  setEnabled(enabled: boolean) : void{
     if (this.enabled === enabled) return;
 
     this.enabled = enabled;
     this.clearState();
   }
 
-  isEnabled() {
+  isEnabled() :boolean{
     return this.enabled;
   }
 
