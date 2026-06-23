@@ -40,20 +40,21 @@ export class InputController implements GameInput {
   }
 
   enable() {
-    this.clearState();
-    this.enabled = true;
+    this.setEnabled(true);
   }
 
   disable() {
-    this.enabled = false;
+    this.setEnabled(false);
+  }
+
+  setEnabled(enabled: boolean) {
+    if (this.enabled === enabled) return;
+
+    this.enabled = enabled;
     this.clearState();
   }
 
-  setEnabled(enabled: boolean): void{
-    this.enabled = enabled;
-  }
-
-  isEnabled(): boolean{
+  isEnabled() {
     return this.enabled;
   }
 

@@ -114,10 +114,18 @@ const gameController = new GameController({
 
 const startMenu = new StartMenu({
   onStart: () => {
-    startMenu.hide();
-    inputController.enable();
-    gameController.start();
+    gameController.startGame();
   },
+});
+
+gameController.onStateChanged((state) => {
+  inputController.setEnabled(state === "playing");
+
+  if (state === "title") {
+    startMenu.show();
+  } else {
+    startMenu.hide();
+  }
 });
 
 startMenu.show();
