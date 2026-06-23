@@ -1,7 +1,8 @@
 import { GameLoop, type FrameCallback } from "./gameLoop";
+import { StateMachine, type StateMachineListener } from "./stateMachine";
 
 export type GameState = "title" | "playing" | "paused";
-export type GameStateListener = (state: GameState, previousState: GameState) => void;
+export type GameStateListener = StateMachineListener<GameState>;
 
 export type GameControllerOptions = {
   onStart?: () => void;
@@ -12,8 +13,11 @@ export type GameControllerOptions = {
 export class GameController {
   private readonly gameLoop: GameLoop;
   private readonly onStart?: () => void;
-  private readonly stateListeners = new Set<GameStateListener>();
-  private state: GameState = "title";
+  private readonly stateMachine = new StateMachine<GameState>("title", {
+    title: ["playing"],
+    playing: ["paused", "title"],
+    paused: ["playing", "title"],
+  });
 
   constructor(options: GameControllerOptions) {
     this.onStart = options.onStart;
@@ -21,30 +25,30 @@ export class GameController {
   }
 
   startGame() {
-    if (this.state === "playing") return;
+    if (!this.stateMachine.canTransitionTo("playing")) return;
 
     this.onStart?.();
     this.gameLoop.start();
-    this.setState("playing");
+    this.stateMachine.transitionTo("playing");
   }
 
   returnToTitle() {
     this.gameLoop.stop();
-    this.setState("title");
+    this.stateMachine.transitionTo("title");
   }
 
   pauseGame() {
-    if (this.state !== "playing") return;
+    if (!this.stateMachine.canTransitionTo("paused")) return;
 
     this.gameLoop.pause();
-    this.setState("paused");
+    this.stateMachine.transitionTo("paused");
   }
 
   resumeGame() {
-    if (this.state !== "paused") return;
+    if (!this.stateMachine.canTransitionTo("playing")) return;
 
     this.gameLoop.resume();
-    this.setState("playing");
+    this.stateMachine.transitionTo("playing");
   }
 
   start() {
@@ -72,23 +76,10 @@ export class GameController {
   }
 
   getState() {
-    return this.state;
+    return this.stateMachine.getState();
   }
 
   onStateChanged(listener: GameStateListener) {
-    this.stateListeners.add(listener);
-    return () => {
-      this.stateListeners.delete(listener);
-    };
-  }
-
-  private setState(nextState: GameState) {
-    if (this.state === nextState) return;
-
-    const previousState = this.state;
-    this.state = nextState;
-    for (const listener of this.stateListeners) {
-      listener(nextState, previousState);
-    }
+    return this.stateMachine.onChanged(listener);
   }
 }
