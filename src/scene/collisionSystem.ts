@@ -1,13 +1,13 @@
-import { SphereCollider } from "./collider";
+import type { Collider } from "./collider";
 
 export class CollisionSystem {
-  private colliders: SphereCollider[] = [];
+  private colliders: Collider[] = [];
 
-  add(c: SphereCollider) {
+  add(c: Collider) {
     this.colliders.push(c);
   }
 
-  remove(c: SphereCollider) {
+  remove(c: Collider) {
     this.colliders = this.colliders.filter(x => x !== c);
   }
 
@@ -47,7 +47,7 @@ export class CollisionSystem {
     }
   }
 
-  private shouldCollide(_a: SphereCollider, _b: SphereCollider): boolean {
+  private shouldCollide(_a: Collider, _b: Collider): boolean {
     // Add layer-pair rules here if broader collision filtering is needed.
     return true;
   }

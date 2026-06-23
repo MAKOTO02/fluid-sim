@@ -1,6 +1,7 @@
 // enemy.ts
 import type { Component } from "./component";
 import type { GameObject } from "./gameObject";
+import { Health } from "./health";
 import { SphereCollider } from "./collider";
 import { Projectile } from "./projectile";
 import { type EnemyConfig, enemyConfigs, type FireContext} from "./enemyConfig";
@@ -15,6 +16,8 @@ export const EnemyStates = {
 
 // Define enemy states as a union type.
 export type EnemyState = (typeof EnemyStates)[keyof typeof EnemyStates];
+
+const PLAYER_BULLET_DAMAGE = 1;
 
 export class Enemy implements Component {
   enabled = true;
@@ -66,9 +69,12 @@ export class Enemy implements Component {
     // Ignore bullets that do not target the enemy layer.
     if (!proj.canHit("enemy")) return;
 
-      console.log("[Enemy] hit by bullet", { self: this.owner, other });
-      this.kill();
-      // Consider moving state management into a dedicated class later.
+      const health = this.owner?.getComponent(Health);
+      health?.applyDamage(PLAYER_BULLET_DAMAGE);
+
+      if (!health || health.isDead()) {
+        this.kill();
+      }
     };
   }
 

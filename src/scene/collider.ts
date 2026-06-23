@@ -13,8 +13,8 @@ export interface Collider extends Component {
 
   start(): void;
   update(dt: number): void;
-  onAttacch?(): void;
-  onDettach?(): void;
+  onAttach?(): void;
+  onDetach?(): void;
 }
 
 export class SphereCollider implements Collider {

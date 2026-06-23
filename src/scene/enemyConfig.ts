@@ -5,7 +5,9 @@ import type { Enemy } from "./enemy";
 import { makeStraightPath } from "./projectileLocalPath";
 import { vec3 } from "gl-matrix";
 import { createProjectileSphereLocal } from "./projectileActor";
+import { Health } from "./health";
 import type { IMaterial } from "./material";
+import { Projectile } from "./projectile";
 import { FluidSim } from "../fluid/fluidSim";
 import {
   defaultEnemyStrategy,
@@ -37,6 +39,8 @@ export type EnemyConfig = {
 };
 
 export const enemyConfigs = new Map<number, EnemyConfig>();
+
+const ENEMY_BULLET_DAMAGE = 10;
 
 const simpleEnemyConfig: EnemyConfig = {
   id: 0,
@@ -92,8 +96,13 @@ const simpleEnemyConfig: EnemyConfig = {
             */
         });
 
-        // Prefer accessing settings through enemy.config for extensibility.
-        
+        const projectile = bullet.getComponent(Projectile);
+        if (projectile) {
+          projectile.onHitCallback = (_self, other) => {
+            const health = other.getComponent(Health);
+            health?.applyDamage(ENEMY_BULLET_DAMAGE);
+          };
+        }
 
         bullet.transform.setParent(muzzle);
         bullet.transform.setPosition(vec3.fromValues(0, 0, 0));
