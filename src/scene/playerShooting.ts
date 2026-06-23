@@ -68,7 +68,7 @@ export class PlayerShooting implements Component {
     const bullet = createProjectileSphereLocal(this.gl, this.scene, {
       radius: 0.04,
       material: this.material,
-      colliderLayer: "bullet",
+      colliderLayer: "playerBullet",
       hitLayers: ["enemy"],
       lifeSec: 5.0,
       localPath,

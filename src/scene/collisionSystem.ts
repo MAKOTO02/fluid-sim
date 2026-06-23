@@ -48,8 +48,7 @@ export class CollisionSystem {
   }
 
   private shouldCollide(_a: SphereCollider, _b: SphereCollider): boolean {
-    // Add layer-pair rules here, such as allowing player vs enemyBullet
-    // while ignoring playerBullet vs player.
+    // Add layer-pair rules here if broader collision filtering is needed.
     return true;
   }
 }

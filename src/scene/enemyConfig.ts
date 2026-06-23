@@ -79,7 +79,7 @@ const simpleEnemyConfig: EnemyConfig = {
         const bullet = createProjectileSphereLocal(ctx.gl, ctx.scene, {
             radius: 0.05,
             material: ctx.material,
-            colliderLayer: "bullet",
+            colliderLayer: "enemyBullet",
             hitLayers: ["player", "wall"],
             localPath: path,
             lifeSec: 10,

@@ -2,7 +2,7 @@ import type { Component } from "./component";
 import type { GameObject } from "./gameObject";
 import type { Scene } from "./scene";
 
-export type CollisionLayer = "player" | "enemy" | "bullet" | "wall";
+export type CollisionLayer = "player" | "enemy" | "playerBullet" | "enemyBullet" | "wall";
 
 export interface Collider extends Component {
   radius: number;

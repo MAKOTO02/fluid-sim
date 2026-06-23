@@ -53,8 +53,8 @@ export class Enemy implements Component {
 
     // Enemy-side hit handling.
     col.onTriggerEnter = (other) => {
-      // Ignore non-bullet colliders.
-      if (other.layer !== "bullet") return;
+      // Ignore non-player-bullet colliders.
+      if (other.layer !== "playerBullet") return;
 
       const bulletOwner = other.owner;
     if (!bulletOwner) return;
