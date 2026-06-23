@@ -116,11 +116,25 @@ const gameUi = new GameUi({
   onStart: () => {
     gameController.startGame();
   },
+  onResume: () => {
+    gameController.resumeGame();
+  },
 });
 
 gameController.onStateChanged((state) => {
   inputController.setEnabled(state === "playing");
   gameUi.setGameState(state);
+});
+
+window.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+
+  const state = gameController.getState();
+  if (state === "playing") {
+    gameController.pauseGame();
+  } else if (state === "paused") {
+    gameController.resumeGame();
+  }
 });
 
 gameUi.setGameState(gameController.getState());
