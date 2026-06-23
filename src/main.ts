@@ -11,7 +11,7 @@ import { bakeBulletVectorField } from "./fluid/bulletStreamField";
 import { InputController } from "./input/inputController";
 import { DebugPanel } from "./debug/debugPanel";
 import { formatWorldSnapshot } from "./debug/formatWorldSnapshot";
-import { StartMenu } from "./ui/startMenu";
+import { GameUi } from "./ui/gameUi";
 import { setupEnemyConfigs } from "./scene/enemyConfig";
 import { createRenderAssets } from "./scene/renderAssets";
 import { createGameWorld } from "./app/createGameWorld";
@@ -112,7 +112,7 @@ const gameController = new GameController({
   onFrame: updateFrame,
 });
 
-const startMenu = new StartMenu({
+const gameUi = new GameUi({
   onStart: () => {
     gameController.startGame();
   },
@@ -120,12 +120,7 @@ const startMenu = new StartMenu({
 
 gameController.onStateChanged((state) => {
   inputController.setEnabled(state === "playing");
-
-  if (state === "title") {
-    startMenu.show();
-  } else {
-    startMenu.hide();
-  }
+  gameUi.setGameState(state);
 });
 
-startMenu.show();
+gameUi.setGameState(gameController.getState());
