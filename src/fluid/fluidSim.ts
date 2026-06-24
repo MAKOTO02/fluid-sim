@@ -56,6 +56,7 @@ export class FluidSim{
     private stream: FBO;
     private obstacle: FBO;
     private paused = false;
+    private streamForceEnabled = true;
     private formats: {
         vel: { internalFormat: number; format: number; type: number; param: number };
         dye: { internalFormat: number; format: number; type: number; param: number };
@@ -140,6 +141,12 @@ export class FluidSim{
     }
     getPaused(){
         return this.paused;
+    }
+    setStreamForceEnabled(enabled: boolean) {
+        this.streamForceEnabled = enabled;
+    }
+    getStreamForceEnabled(){
+        return this.streamForceEnabled;
     }
 
     splat(u: number, v: number, dx: number, dy: number, color: { r: number, g: number, b: number, a?: number } , canvas: HTMLCanvasElement){
@@ -316,7 +323,8 @@ export class FluidSim{
         if(locGravity!=null) this.gl.uniform2f(locGravity, 0.0, -this.config.GRAVITY); 
         if(locAccel!=null) this.gl.uniform2f(locAccel, accel.x, accel.y);
         if(locStreamMask!=null) this.gl.uniform1i(locStreamMask, this.stream.attach(1))
-        if(locStreamForceScale!=null) this.gl.uniform1f(locStreamForceScale, this.config.STREAM_FORCE_SCALE);
+        const streamForceScale = this.streamForceEnabled ? this.config.STREAM_FORCE_SCALE : 0;
+        if(locStreamForceScale!=null) this.gl.uniform1f(locStreamForceScale, streamForceScale);
 
         this.blit(this.velocity.write);
         this.velocity.swap();

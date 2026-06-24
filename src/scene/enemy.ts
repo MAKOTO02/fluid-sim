@@ -2,7 +2,7 @@
 import type { Component } from "./component";
 import type { GameObject } from "./gameObject";
 import { Health } from "./health";
-import { SphereCollider } from "./collider";
+import { SphereCollider, type Collider } from "./collider";
 import { Projectile } from "./projectile";
 import { type EnemyConfig, enemyConfigs, type FireContext} from "./enemyConfig";
 import { type IEnemyStrategy, defaultEnemyStrategy } from "./enemyStrategy";
@@ -26,6 +26,7 @@ export class Enemy implements Component {
   name: string = "enemy";
   readonly config: EnemyConfig;
   private strategy: IEnemyStrategy;
+  private readonly playerContacts = new Set<Collider>();
   target?: Transform;
 
   constructor(typeId: number, ctx: FireContext,  name?: string){
@@ -54,31 +55,19 @@ export class Enemy implements Component {
       return;
     }
 
-    // Enemy-side hit handling.
     col.onTriggerEnter = (other) => {
-      // Ignore non-player-bullet colliders.
-      if (other.layer !== "playerBullet") return;
-
-      const bulletOwner = other.owner;
-    if (!bulletOwner) return;
-
-    // Check whether the other object owns a Projectile component.
-    const proj = bulletOwner.getComponent(Projectile);
-    if (!proj) return;
-
-    // Ignore bullets that do not target the enemy layer.
-    if (!proj.canHit("enemy")) return;
-
-      const health = this.owner?.getComponent(Health);
-      health?.applyDamage(PLAYER_BULLET_DAMAGE);
-
-      if (!health || health.isDead()) {
-        this.kill();
-      }
+      this.handleTriggerEnter(other);
+    };
+    col.onTriggerStay = (other) => {
+      this.handleTriggerStay(other);
+    };
+    col.onTriggerExit = (other) => {
+      this.handleTriggerExit(other);
     };
   }
 
   update(dt: number): void {
+    this.applyContactDamage(dt);
     this.strategy.update(this, dt);
   }
 
@@ -87,7 +76,7 @@ export class Enemy implements Component {
 
   }
   onDetach?(): void {
-
+    this.playerContacts.clear();
   }
 
   get State(): EnemyState{
@@ -107,6 +96,59 @@ export class Enemy implements Component {
   createVisual(gl: WebGLRenderingContext | WebGL2RenderingContext, scene: Scene){
     if(this.owner) {
         this.config.visual(gl, scene, this.owner, this.config);
+    }
+  }
+
+  private handleTriggerEnter(other: Collider): void {
+    this.addPlayerContact(other);
+    this.handleProjectileHit(other);
+  }
+
+  private handleTriggerStay(other: Collider): void {
+    this.addPlayerContact(other);
+  }
+
+  private handleTriggerExit(other: Collider): void {
+    if (other.layer !== "player") return;
+    this.playerContacts.delete(other);
+  }
+
+  private addPlayerContact(other: Collider): void {
+    if (other.layer !== "player") return;
+    this.playerContacts.add(other);
+  }
+
+  private handleProjectileHit(other: Collider): void {
+    if (other.layer !== "playerBullet") return;
+
+    const bulletOwner = other.owner;
+    if (!bulletOwner) return;
+
+    const proj = bulletOwner.getComponent(Projectile);
+    if (!proj || !proj.canHit("enemy")) return;
+
+    const health = this.owner?.getComponent(Health);
+    health?.applyDamage(PLAYER_BULLET_DAMAGE);
+
+    if (!health || health.isDead()) {
+      this.kill();
+    }
+  }
+
+  private applyContactDamage(dt: number): void {
+    if (this.state === EnemyStates.Dead) return;
+
+    const damage = this.config.contactDamagePerSecond * dt;
+    if (damage <= 0) return;
+
+    for (const playerCollider of this.playerContacts) {
+      const player = playerCollider.owner;
+      if (!player || !player.active || player.destroyed) {
+        this.playerContacts.delete(playerCollider);
+        continue;
+      }
+
+      player.getComponent(Health)?.applyDamage(damage);
     }
   }
 }

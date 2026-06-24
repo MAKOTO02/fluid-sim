@@ -26,14 +26,18 @@ export class Health implements Component {
     return this.max;
   }
 
-  applyDamage(amount: number) {
-    if (amount <= 0) return;
+  applyDamage(amount: number): number {
+    if (amount <= 0) return 0;
+    const before = this.current;
     this.current = this.clamp(this.current - amount);
+    return before - this.current;
   }
 
-  recover(amount: number, limit = this.max) {
-    if (amount <= 0) return;
+  recover(amount: number, limit = this.max): number {
+    if (amount <= 0) return 0;
+    const before = this.current;
     this.current = Math.min(this.clamp(limit), this.clamp(this.current + amount));
+    return this.current - before;
   }
 
   isDead() {

@@ -10,6 +10,7 @@ import { createFluidSim } from "./fluid/createFluidSim";
 import { bakeBulletVectorField } from "./fluid/bulletStreamField";
 import { InputController } from "./input/inputController";
 import { DebugPanel } from "./debug/debugPanel";
+import { DebugToggleButton } from "./debug/debugToggleButton";
 import { formatWorldSnapshot } from "./debug/formatWorldSnapshot";
 import { GameUi } from "./ui/gameUi";
 import { setupEnemyConfigs } from "./scene/enemyConfig";
@@ -17,6 +18,7 @@ import { createRenderAssets } from "./scene/renderAssets";
 import { createGameWorld } from "./app/createGameWorld";
 import { createWorldSnapshot } from "./app/worldSnapshot";
 import { SceneLayers } from "./scene/layers";
+import { getStageStatus } from "./stage/stageProgress";
 
 const canvas = document.querySelector("canvas")!;
 const dpr = window.devicePixelRatio || 1;
@@ -48,6 +50,14 @@ const { fluidSim, resolver } = createFluidSim({
   blit,
   fluidShaders,
   copyProgram,
+});
+
+new DebugToggleButton({
+  label: "Stream",
+  initialChecked: fluidSim.getStreamForceEnabled(),
+  onChanged: (enabled) => {
+    fluidSim.setStreamForceEnabled(enabled);
+  },
 });
 
 const bulletStreamTexture = bakeBulletVectorField(gl, shaderLib, blit, resolver);
@@ -125,6 +135,15 @@ function updateFrame(dt: number) {
   const snapshot = createWorldSnapshot(world);
   gameUi.setPlayerHealth(snapshot.stage.player.health);
   debugPanel.setText(formatWorldSnapshot(snapshot));
+
+  if (gameController.getState() === "playing") {
+    const stageStatus = getStageStatus(world.stage);
+    if (stageStatus === "cleared") {
+      gameController.clearStage();
+    } else if (stageStatus === "failed") {
+      gameController.gameOver();
+    }
+  }
 }
 
 const gameController = new GameController({
@@ -138,6 +157,9 @@ const gameUi = new GameUi({
   },
   onResume: () => {
     gameController.resumeGame();
+  },
+  onReturnToTitle: () => {
+    gameController.returnToTitle();
   },
 });
 

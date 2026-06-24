@@ -6,7 +6,10 @@ import type { IMaterial } from "./material";
 import type { GameObject } from "./gameObject";
 import { createProjectileSphereLocal } from "./projectileActor";
 import { makeStraightPath } from "./projectileLocalPath";
+import { Projectile } from "./projectile";
 import type { Scene } from "./scene";
+
+const MAX_ACTIVE_PLAYER_BULLETS = 6;
 
 export class PlayerShooting implements Component {
   enabled = true;
@@ -19,6 +22,7 @@ export class PlayerShooting implements Component {
   private readonly fluidSim: FluidSim;
   private readonly canvas: HTMLCanvasElement;
   private readonly splatForce: number;
+  private readonly activeBullets = new Set<GameObject>();
 
   constructor(args: {
     gl: WebGLRenderingContext | WebGL2RenderingContext;
@@ -49,6 +53,7 @@ export class PlayerShooting implements Component {
 
   private shootAt(u: number, v: number) {
     if (!this.owner) return;
+    if (this.activeBullets.size >= MAX_ACTIVE_PLAYER_BULLETS) return;
 
     const cam = this.scene.MainCamera;
     if (!cam) return;
@@ -81,6 +86,14 @@ export class PlayerShooting implements Component {
         color: { r: 0, g: 1, b: 0 },
       },
     });
+
+    this.activeBullets.add(bullet);
+    const projectile = bullet.getComponent(Projectile);
+    if (projectile) {
+      projectile.onDestroyed = () => {
+        this.activeBullets.delete(bullet);
+      };
+    }
 
     bullet.transform.setPosition(playerPos);
   }

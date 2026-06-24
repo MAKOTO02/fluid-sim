@@ -22,6 +22,11 @@ export class Projectile implements Component {
   /** Optional callback invoked when the projectile hits something. */
   onHitCallback?: (self: GameObject, other: GameObject) => void;
 
+  /** Optional callback invoked when this projectile is destroyed. */
+  onDestroyed?: (self: GameObject) => void;
+
+  private destroyed = false;
+
   constructor(
     scene: Scene,
     lifeSec = 5.0,
@@ -91,6 +96,10 @@ export class Projectile implements Component {
 
   private destroySelf() {
     if (!this.owner) return;
+    if (this.destroyed) return;
+
+    this.destroyed = true;
+    this.onDestroyed?.(this.owner);
 
     // Prefer GameObject.destroy() when available.
     if (typeof (this.owner as any).destroy === "function") {

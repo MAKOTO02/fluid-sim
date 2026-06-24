@@ -17,6 +17,7 @@ import { Health } from "./health";
 import { Obstacle } from "./obstacle";
 
 const OBSTACLE_HEALTH = 100;
+const OBSTACLE_RECOVERY_PER_SECOND = 10;
 
 export type FluidPlaneObject = {
   fluidPlane: GameObject;
@@ -67,7 +68,10 @@ export function createObstacleObject(args: {
   obstacle.addComponent(new MeshRenderer(gl, material));
   obstacle.addComponent(new BoxCollider(scene, vec3.fromValues(0.5, 0.5, 0.05), "wall", true));
   obstacle.addComponent(new Health(OBSTACLE_HEALTH));
-  obstacle.addComponent(new Obstacle({ onDestroyed: onObstacleChanged }));
+  obstacle.addComponent(new Obstacle({
+    onDestroyed: onObstacleChanged,
+    recoveryPerSecond: OBSTACLE_RECOVERY_PER_SECOND,
+  }));
   obstacle.transform.setScale(vec3.fromValues(0.5, 0.5, 0.5));
   obstacle.transform.translate(vec3.fromValues(-2, -1.5, 0));
 
