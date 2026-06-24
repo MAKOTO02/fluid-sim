@@ -2,7 +2,7 @@
 import { GameObject } from "./gameObject";
 import { MeshRenderer } from "./meshRenderer";
 import { SphereCollider } from "./collider";
-import { createSphere } from "./primitives";
+import { createQuad, createSphere } from "./primitives";
 import type { Scene } from "./scene";
 import type { IMaterial } from "./material";
 import type { CollisionLayer } from "./collider";
@@ -41,6 +41,32 @@ export function createSphereActor(
     layer,
     isTrigger
   ));
+
+  scene.addObject(go);
+  return go;
+}
+
+export function createQuadVisualObject(
+  gl: WebGLRenderingContext | WebGL2RenderingContext,
+  scene: Scene,
+  opts: {
+    material: IMaterial;
+    size?: number;
+    name?: string;
+    layer?: number;
+  }
+): GameObject {
+  const {
+    material,
+    size = 1,
+    name = "QuadVisual",
+    layer = 1 << 0,
+  } = opts;
+
+  const go = new GameObject(name);
+  go.layer = layer;
+  go.addComponent(new MeshFilter(createQuad(size)));
+  go.addComponent(new MeshRenderer(gl, material));
 
   scene.addObject(go);
   return go;

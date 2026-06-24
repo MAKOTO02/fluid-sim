@@ -2,7 +2,8 @@ import { vec3 } from "gl-matrix";
 import type { FluidSim } from "../fluid/fluidSim";
 import type { MovementInput } from "../input/inputController";
 import type { IMaterial } from "./material";
-import { createSphereActor } from "./actor";
+import { createQuadVisualObject } from "./actor";
+import { SphereCollider } from "./collider";
 import { FluidDrag } from "./fluidDrag";
 import { FluidEmitter } from "./fluidEmitter";
 import { GameObject } from "./gameObject";
@@ -10,9 +11,12 @@ import { Health } from "./health";
 import { PlayerController } from "./playerController";
 import { RigidBody } from "./rigidBody";
 import { ScreenBoundsLimiter } from "./screenBoundsLimiter";
+import { SceneLayers } from "./layers";
 import type { Scene } from "./scene";
 
 const SPLAT_FORCE = 2000;
+const PLAYER_HIT_RADIUS = 0.015;
+const PLAYER_VISUAL_SIZE = 0.16;
 const PLAYER_HEALTH_CONFIG = {
   max: 100,
 } as const;
@@ -32,13 +36,9 @@ export function createPlayer(args: {
 }): PlayerSetup {
   const { scene, gl, canvas, material, fluidSim, input } = args;
 
-  const player = createSphereActor(gl, scene, {
-    radius: 0.05,
-    material,
-    layer: "player",
-    hitScale: 0.3,
-    name: "Player",
-  });
+  const player = new GameObject("Player");
+  player.addComponent(new SphereCollider(scene, PLAYER_HIT_RADIUS, "player", true));
+  scene.addObject(player);
 
   const playerController = new PlayerController(input, 50, 1, 20);
   const rb = new RigidBody(10);
@@ -49,6 +49,15 @@ export function createPlayer(args: {
   player.addComponent(rb);
   player.addComponent(fluidDrag);
   player.addComponent(new ScreenBoundsLimiter(scene, 0.01));
+
+  const visual = createQuadVisualObject(gl, scene, {
+    material,
+    size: PLAYER_VISUAL_SIZE,
+    name: "PlayerVisual",
+    layer: SceneLayers.default,
+  });
+  visual.transform.setParent(player.transform);
+  visual.transform.setPosition(vec3.fromValues(0, 0, 0.02));
 
   const emitter = new GameObject("emitter");
   const fluidEmitter = new FluidEmitter(
