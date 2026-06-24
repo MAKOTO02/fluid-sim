@@ -56,6 +56,19 @@ const bulletStreamTexture = bakeBulletVectorField(gl, shaderLib, blit, resolver)
 gl.bindFramebuffer(gl.FRAMEBUFFER, null); 
 gl.viewport(0, 0, canvas.width, canvas.height);
 
+let obstacleTargetUpdateRequested = false;
+
+function requestObstacleTargetUpdate(): void {
+  obstacleTargetUpdateRequested = true;
+}
+
+function consumeObstacleTargetUpdateRequest(): boolean {
+  if (!obstacleTargetUpdateRequested) return false;
+
+  obstacleTargetUpdateRequested = false;
+  return true;
+}
+
 const world = createGameWorld({
   gl,
   canvas,
@@ -63,6 +76,7 @@ const world = createGameWorld({
   renderAssets,
   bulletStreamTexture,
   input: inputController,
+  onObstacleChanged: requestObstacleTargetUpdate,
 });
 
 const {
@@ -104,7 +118,13 @@ function updateFrame(dt: number) {
     dt,
   });
 
-  debugPanel.setText(formatWorldSnapshot(createWorldSnapshot(world)));
+  if (consumeObstacleTargetUpdateRequest()) {
+    initializeFrameTargets();
+  }
+
+  const snapshot = createWorldSnapshot(world);
+  gameUi.setPlayerHealth(snapshot.stage.player.health);
+  debugPanel.setText(formatWorldSnapshot(snapshot));
 }
 
 const gameController = new GameController({

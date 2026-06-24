@@ -30,8 +30,9 @@ export function createGameWorld(args: {
   renderAssets: RenderAssets;
   bulletStreamTexture: WebGLTexture;
   input: GameInput;
+  onObstacleChanged?: () => void;
 }): GameWorld {
-  const { gl, canvas, fluidSim, renderAssets, bulletStreamTexture, input } = args;
+  const { gl, canvas, fluidSim, renderAssets, bulletStreamTexture, input, onObstacleChanged } = args;
 
   const scene = new Scene();
   const renderer = new Renderer(gl);
@@ -64,6 +65,7 @@ export function createGameWorld(args: {
     bulletStreamTexture,
     fluidSim,
     input,
+    onObstacleChanged,
   });
 
   const debugTextureMap = createDebugTextureMap({

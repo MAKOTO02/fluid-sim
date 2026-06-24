@@ -31,6 +31,7 @@ export function createDemoStage(args: {
   bulletStreamTexture: WebGLTexture;
   fluidSim: FluidSim;
   input: GameInput;
+  onObstacleChanged?: () => void;
 }): GameStage {
   const {
     scene,
@@ -42,6 +43,7 @@ export function createDemoStage(args: {
     bulletStreamTexture,
     fluidSim,
     input,
+    onObstacleChanged,
   } = args;
 
   const obstacleMesh = createQuad(1);
@@ -51,6 +53,7 @@ export function createDemoStage(args: {
     mesh: obstacleMesh,
     material: obstacleMaterial,
     layer: SceneLayers.obstacle,
+    onObstacleChanged,
   });
 
   const stream = createStreamObject({

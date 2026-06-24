@@ -10,6 +10,8 @@ export interface Collider extends Component {
   isTrigger: boolean;
   scene: Scene;
   onTriggerEnter?: (other: Collider) => void;
+  onTriggerStay?: (other: Collider) => void;
+  onTriggerExit?: (other: Collider) => void;
   intersects(other: Collider): boolean;
 
   start(): void;
@@ -29,6 +31,8 @@ export class SphereCollider implements Collider {
   scene: Scene;
 
   onTriggerEnter?: (other: Collider) => void;
+  onTriggerStay?: (other: Collider) => void;
+  onTriggerExit?: (other: Collider) => void;
 
   constructor(scene: Scene, radius: number, layer: CollisionLayer, isTrigger = true) {
     this.radius = radius;
@@ -92,6 +96,8 @@ export class BoxCollider implements Collider {
   scene: Scene;
 
   onTriggerEnter?: (other: Collider) => void;
+  onTriggerStay?: (other: Collider) => void;
+  onTriggerExit?: (other: Collider) => void;
 
   constructor(scene: Scene, halfExtents: vec3, layer: CollisionLayer, isTrigger = true) {
     this.halfExtents = vec3.clone(halfExtents);

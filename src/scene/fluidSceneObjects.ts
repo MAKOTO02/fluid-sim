@@ -13,7 +13,10 @@ import type { Scene } from "./scene";
 import { DyeVisualMaterial } from "./materials/dyeVisualMaterial";
 import { UnlitTextureMaterial } from "./materials/unlitTexMaterial";
 import { BoxCollider } from "./collider";
+import { Health } from "./health";
 import { Obstacle } from "./obstacle";
+
+const OBSTACLE_HEALTH = 100;
 
 export type FluidPlaneObject = {
   fluidPlane: GameObject;
@@ -54,15 +57,17 @@ export function createObstacleObject(args: {
   mesh: Mesh;
   material: IMaterial;
   layer: number;
+  onObstacleChanged?: () => void;
 }): GameObject {
-  const { scene, gl, mesh, material, layer } = args;
+  const { scene, gl, mesh, material, layer, onObstacleChanged } = args;
 
   const obstacle = new GameObject("obstacle");
   obstacle.layer = layer;
   obstacle.addComponent(new MeshFilter(mesh));
   obstacle.addComponent(new MeshRenderer(gl, material));
   obstacle.addComponent(new BoxCollider(scene, vec3.fromValues(0.5, 0.5, 0.05), "wall", true));
-  obstacle.addComponent(new Obstacle());
+  obstacle.addComponent(new Health(OBSTACLE_HEALTH));
+  obstacle.addComponent(new Obstacle({ onDestroyed: onObstacleChanged }));
   obstacle.transform.setScale(vec3.fromValues(0.5, 0.5, 0.5));
   obstacle.transform.translate(vec3.fromValues(-2, -1.5, 0));
 
