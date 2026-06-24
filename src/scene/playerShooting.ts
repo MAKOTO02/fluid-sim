@@ -69,7 +69,7 @@ export class PlayerShooting implements Component {
       radius: 0.04,
       material: this.material,
       colliderLayer: "playerBullet",
-      hitLayers: ["enemy"],
+      hitLayers: ["enemy", "wall"],
       lifeSec: 5.0,
       localPath,
       name: "PlayerBullet",

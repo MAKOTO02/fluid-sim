@@ -12,6 +12,8 @@ import { createQuad } from "./primitives";
 import type { Scene } from "./scene";
 import { DyeVisualMaterial } from "./materials/dyeVisualMaterial";
 import { UnlitTextureMaterial } from "./materials/unlitTexMaterial";
+import { BoxCollider } from "./collider";
+import { Obstacle } from "./obstacle";
 
 export type FluidPlaneObject = {
   fluidPlane: GameObject;
@@ -59,6 +61,8 @@ export function createObstacleObject(args: {
   obstacle.layer = layer;
   obstacle.addComponent(new MeshFilter(mesh));
   obstacle.addComponent(new MeshRenderer(gl, material));
+  obstacle.addComponent(new BoxCollider(scene, vec3.fromValues(0.5, 0.5, 0.05), "wall", true));
+  obstacle.addComponent(new Obstacle());
   obstacle.transform.setScale(vec3.fromValues(0.5, 0.5, 0.5));
   obstacle.transform.translate(vec3.fromValues(-2, -1.5, 0));
 

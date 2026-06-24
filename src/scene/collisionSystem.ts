@@ -17,12 +17,12 @@ export class CollisionSystem {
     for (let i = 0; i < n; i++) {
       const a = this.colliders[i];
       const ao = a.owner;
-      if (!a.enabled || !ao) continue;
+      if (!a.enabled || !ao || !ao.active || ao.destroyed) continue;
 
       for (let j = i + 1; j < n; j++) {
         const b = this.colliders[j];
         const bo = b.owner;
-        if (!b.enabled || !bo) continue;
+        if (!b.enabled || !bo || !bo.active || bo.destroyed) continue;
 
         // Add layer-mask filtering here if needed.
         if (!this.shouldCollide(a, b)) continue;
