@@ -11,6 +11,7 @@ uniform float decayDt;
 uniform float advectDt;
 uniform float dissipation;
 uniform sampler2D uObstacle;
+uniform float uObstacleAdvectionScale;
 uniform vec4 uViewRect;
 
 vec4 bilerp (sampler2D sam, vec2 uv, vec2 tsize) {
@@ -29,18 +30,20 @@ vec4 bilerp (sampler2D sam, vec2 uv, vec2 tsize) {
 
 void main () {
     float mask = texture2D(uObstacle, vUv).r;
+    float obstacleMask = clamp(mask, 0.0, 1.0);
+    float advectionScale = mix(1.0, uObstacleAdvectionScale, obstacleMask);
     float inside =
         step(uViewRect.x, vUv.x) * step(vUv.x, uViewRect.z) *
         step(uViewRect.y, vUv.y) * step(vUv.y, uViewRect.w);
 #ifdef MANUAL_FILTERING
-    vec2 coord = vUv - advectDt * bilerp(uVelocity, vUv, texelSize).xy * texelSize;
+    vec2 coord = vUv - advectDt * advectionScale * bilerp(uVelocity, vUv, texelSize).xy * texelSize;
     vec4 result = bilerp(uSource, coord, dyeTexelSize);
 #else
-    vec2 coord = vUv - advectDt * texture2D(uVelocity, vUv).xy * texelSize;
+    vec2 coord = vUv - advectDt * advectionScale * texture2D(uVelocity, vUv).xy * texelSize;
     vec4 result = texture2D(uSource, coord);
 #endif
     float normalDecay = 1.0 + dissipation * decayDt;
-    float decay = mix(normalDecay, 1.0, clamp(mask, 0.0, 1.0));
+    float decay = mix(normalDecay, 1.0, obstacleMask);
 
     gl_FragColor = result * inside / decay;
 }

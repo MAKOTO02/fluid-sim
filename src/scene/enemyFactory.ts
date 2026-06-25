@@ -8,6 +8,7 @@ import { LocalPathMover } from "./projectileLocalPath";
 import type { Scene } from "./scene";
 import type { Transform } from "./transform";
 import { setupEnemyStrategyFactories } from "./enemyStrategy";
+import type { InkZoneRegistry } from "./inkZoneRegistry";
 
 export function createDemoEnemy(args: {
   scene: Scene;
@@ -16,8 +17,9 @@ export function createDemoEnemy(args: {
   material: IMaterial;
   fluidSim: FluidSim;
   target: Transform;
+  inkZoneRegistry?: InkZoneRegistry;
 }): GameObject {
-  const { scene, gl, canvas, material, fluidSim, target } = args;
+  const { scene, gl, canvas, material, fluidSim, target, inkZoneRegistry } = args;
 
   const enemyCenter = new GameObject();
   enemyCenter.transform.translate(vec3.fromValues(1, 1, 0));
@@ -38,7 +40,7 @@ export function createDemoEnemy(args: {
   };
   setupEnemyStrategyFactories(ctx);
 
-  const enemyComp = new Enemy(0, ctx);
+  const enemyComp = new Enemy(0, ctx, undefined, inkZoneRegistry);
   enemyComp.setTarget(target);
   enemy.addComponent(new Health(enemyComp.config.hitPoint));
   enemy.addComponent(enemyComp);

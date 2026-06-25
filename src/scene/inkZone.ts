@@ -2,6 +2,7 @@ import { vec3 } from "gl-matrix";
 import type { StreamFieldMap } from "../fluid/streamFieldMap";
 import type { Component } from "./component";
 import type { GameObject } from "./gameObject";
+import type { InkZoneRegistry } from "./inkZoneRegistry";
 import type { Scene } from "./scene";
 
 export type InkZoneConfig = {
@@ -18,14 +19,21 @@ export class InkZone implements Component {
 
   private readonly scene: Scene;
   private readonly streamFieldMap: StreamFieldMap;
+  private readonly registry: InkZoneRegistry;
   private readonly config: InkZoneConfig;
   private readonly baseScale = vec3.create();
   private life: number;
   private strength = 1;
 
-  constructor(scene: Scene, streamFieldMap: StreamFieldMap, config: InkZoneConfig) {
+  constructor(
+    scene: Scene,
+    streamFieldMap: StreamFieldMap,
+    registry: InkZoneRegistry,
+    config: InkZoneConfig
+  ) {
     this.scene = scene;
     this.streamFieldMap = streamFieldMap;
+    this.registry = registry;
     this.config = config;
     this.life = config.lifeSec;
   }
@@ -35,6 +43,11 @@ export class InkZone implements Component {
 
     vec3.set(this.baseScale, this.config.initialRadius, this.config.initialRadius, this.config.initialRadius);
     this.owner.transform.setScale(this.baseScale);
+    this.registry.register(this);
+  }
+
+  onDetach(): void {
+    this.registry.unregister(this);
   }
 
   update(dt: number): void {
@@ -50,6 +63,16 @@ export class InkZone implements Component {
 
     this.applyStreamMotion(dt);
     this.updateVisualScale();
+  }
+
+  containsPoint(position: vec3): boolean {
+    if (!this.owner) return false;
+
+    const zonePosition = this.owner.transform.getWorldPosition();
+    const radius = this.config.initialRadius * this.strength;
+    const dx = position[0] - zonePosition[0];
+    const dy = position[1] - zonePosition[1];
+    return dx * dx + dy * dy <= radius * radius;
   }
 
   private applyStreamMotion(dt: number): void {

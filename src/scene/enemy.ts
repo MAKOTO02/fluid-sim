@@ -6,6 +6,7 @@ import { SphereCollider, type Collider } from "./collider";
 import { Projectile } from "./projectile";
 import { type EnemyConfig, enemyConfigs, type FireContext} from "./enemyConfig";
 import { type IEnemyStrategy, defaultEnemyStrategy } from "./enemyStrategy";
+import type { InkZoneRegistry } from "./inkZoneRegistry";
 import type { Transform } from "./transform";
 import type { Scene } from "./scene";
 
@@ -27,15 +28,17 @@ export class Enemy implements Component {
   readonly config: EnemyConfig;
   private strategy: IEnemyStrategy;
   private readonly playerContacts = new Set<Collider>();
+  private readonly inkZoneRegistry?: InkZoneRegistry;
   target?: Transform;
 
-  constructor(typeId: number, ctx: FireContext,  name?: string){
+  constructor(typeId: number, ctx: FireContext, name?: string, inkZoneRegistry?: InkZoneRegistry){
     const cfg = enemyConfigs.get(typeId);
     if (!cfg) {
       throw new Error(`EnemyConfig not found for typeId=${typeId}`);
     }
     this.config = cfg;
     this.name = name ?? "enemy";
+    this.inkZoneRegistry = inkZoneRegistry;
 
     this.strategy = cfg.createStrategy
       ? cfg.createStrategy(ctx)
@@ -68,6 +71,7 @@ export class Enemy implements Component {
 
   update(dt: number): void {
     this.applyContactDamage(dt);
+    this.applyInkDamage(dt);
     this.strategy.update(this, dt);
   }
 
@@ -149,6 +153,24 @@ export class Enemy implements Component {
       }
 
       player.getComponent(Health)?.applyDamage(damage);
+    }
+  }
+
+  private applyInkDamage(dt: number): void {
+    if (this.state === EnemyStates.Dead) return;
+    if (!this.owner || !this.inkZoneRegistry) return;
+
+    const damage = this.config.inkDamagePerSecond * dt;
+    if (damage <= 0) return;
+
+    if (!this.inkZoneRegistry.containsPoint(this.owner.transform.getWorldPosition())) {
+      return;
+    }
+
+    const health = this.owner.getComponent(Health);
+    health?.applyDamage(damage);
+    if (!health || health.isDead()) {
+      this.kill();
     }
   }
 }

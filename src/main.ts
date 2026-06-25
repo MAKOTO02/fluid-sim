@@ -21,6 +21,7 @@ import { createGameWorld } from "./app/createGameWorld";
 import { createWorldSnapshot } from "./app/worldSnapshot";
 import { SceneLayers } from "./scene/layers";
 import { getStageStatus } from "./stage/stageProgress";
+import { SHELTER_STORED_INK_COLOR } from "./scene/playerInkColor";
 
 const canvas = document.querySelector("canvas")!;
 const dpr = window.devicePixelRatio || 1;
@@ -89,79 +90,61 @@ function consumeShelterTargetUpdateRequest(): boolean {
   return true;
 }
 
-const world = createGameWorld({
-  gl,
-  canvas,
-  fluidSim,
-  renderAssets,
-  bulletStreamTexture,
-  bulletStreamSource,
-  streamFieldMap,
-  input: inputController,
-  onShelterChanged: requestShelterTargetUpdate,
-});
+function createWorldInstance() {
+  return createGameWorld({
+    gl,
+    canvas,
+    fluidSim,
+    renderAssets,
+    bulletStreamTexture,
+    bulletStreamSource,
+    streamFieldMap,
+    input: inputController,
+    onShelterChanged: requestShelterTargetUpdate,
+  });
+}
 
-const {
-  scene,
-  renderer,
-  debugTextureMap,
-  dyeVisualMaterial,
-  fitter,
-} = world;
+let world = createWorldInstance();
+
+function resetWorld(): void {
+  fluidSim.reset();
+  shelterTargetUpdateRequested = false;
+  world = createWorldInstance();
+  updateDebugSnapshot();
+}
 
 function initializeFrameTargets() {
   initializeObstacleTarget({
     gl,
-    scene,
-    renderer,
+    scene: world.scene,
+    renderer: world.renderer,
     fluidSim,
     obstacleLayer: SceneLayers.obstacle,
   });
-  splatInitialShelterInk();
-}
-
-function splatInitialShelterInk(): void {
-  const cam = scene.MainCamera;
-  if (!cam) return;
-
-  for (const shelter of world.stage.shelters) {
-    if (!shelter.active || shelter.destroyed) continue;
-
-    const center = shelter.transform.getWorldPosition();
-    const spreadX = shelter.transform.scale[0] * 0.35;
-    const spreadY = shelter.transform.scale[1] * 0.35;
-    const points = [
-      [0, 0],
-      [-spreadX, 0],
-      [spreadX, 0],
-      [0, -spreadY],
-      [0, spreadY],
-    ] as const;
-
-    for (const [dx, dy] of points) {
-      const uv = cam.worldToScreenUV([center[0] + dx, center[1] + dy, center[2]]);
-      fluidSim.splat(uv.u, uv.v, 0, 0, { r: 0.0, g: 0.85, b: 1.0, a: 0.75 }, canvas);
-    }
-  }
+  fluidSim.addDyeFromMask(
+    fluidSim.getObstacleTarget().texture,
+    SHELTER_STORED_INK_COLOR,
+    1.0
+  );
 }
 
 function updateFrame(dt: number) {
   handleCanvasResize({
     canvas,
-    scene,
+    scene: world.scene,
     fluidSim,
-    fitter,
+    fitter: world.fitter,
     onResized: initializeFrameTargets,
   });
 
-  debugTextureMap.updateTextures();
+  world.debugTextureMap.updateTextures();
 
   updateFluidFrame({
     gl,
-    scene,
-    renderer,
+    scene: world.scene,
+    renderer: world.renderer,
     fluidSim,
-    dyeVisualMaterial,
+    dyeVisualMaterial: world.dyeVisualMaterial,
     streamLayer: SceneLayers.stream,
     dt,
   });
@@ -170,11 +153,7 @@ function updateFrame(dt: number) {
     initializeFrameTargets();
   }
 
-  const snapshot = createWorldSnapshot(world);
-  gameUi.setPlayerHealth(snapshot.stage.player.health);
-  gameUi.setPlayerInk(snapshot.stage.player.ink);
-  gameUi.setEnemyHealth(snapshot.stage.enemies);
-  debugPanel.setText(formatWorldSnapshot(snapshot));
+  updateDebugSnapshot();
 
   if (gameController.getState() === "playing") {
     const stageStatus = getStageStatus(world.stage);
@@ -199,6 +178,7 @@ const gameUi = new GameUi({
     gameController.resumeGame();
   },
   onReturnToTitle: () => {
+    resetWorld();
     gameController.returnToTitle();
   },
 });
@@ -220,3 +200,13 @@ window.addEventListener("keydown", (event) => {
 });
 
 gameUi.setGameState(gameController.getState());
+updateDebugSnapshot();
+
+function updateDebugSnapshot() {
+  const snapshot = createWorldSnapshot(world);
+  gameUi.setPlayerHealth(snapshot.stage.player.health);
+  gameUi.setPlayerInk(snapshot.stage.player.ink);
+  gameUi.setEnemyHealth(snapshot.stage.enemies);
+  debugPanel.setText(formatWorldSnapshot(snapshot));
+  return snapshot;
+}

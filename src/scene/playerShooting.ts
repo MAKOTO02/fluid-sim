@@ -9,6 +9,8 @@ import { makeStraightPath } from "./projectileLocalPath";
 import { Projectile } from "./projectile";
 import { ProjectileInkTrail } from "./projectileInkTrail";
 import { PlayerInk } from "./playerInk";
+import { PLAYER_FLUID_INK_COLOR } from "./playerInkColor";
+import type { InkZoneRegistry } from "./inkZoneRegistry";
 import type { Scene } from "./scene";
 import type { StreamFieldMap } from "../fluid/streamFieldMap";
 
@@ -30,6 +32,7 @@ export class PlayerShooting implements Component {
   private readonly splatForce: number;
   private readonly inkZoneMaterial: IMaterial;
   private readonly streamFieldMap: StreamFieldMap;
+  private readonly inkZoneRegistry: InkZoneRegistry;
   private readonly activeBullets = new Set<GameObject>();
 
   constructor(args: {
@@ -42,6 +45,7 @@ export class PlayerShooting implements Component {
     splatForce: number;
     inkZoneMaterial: IMaterial;
     streamFieldMap: StreamFieldMap;
+    inkZoneRegistry: InkZoneRegistry;
   }) {
     this.gl = args.gl;
     this.scene = args.scene;
@@ -52,6 +56,7 @@ export class PlayerShooting implements Component {
     this.splatForce = args.splatForce;
     this.inkZoneMaterial = args.inkZoneMaterial;
     this.streamFieldMap = args.streamFieldMap;
+    this.inkZoneRegistry = args.inkZoneRegistry;
   }
 
   update() {
@@ -97,7 +102,7 @@ export class PlayerShooting implements Component {
         fluidSim: this.fluidSim,
         canvas: this.canvas,
         strength: this.splatForce,
-        color: { r: 0, g: 1, b: 0 },
+        color: PLAYER_FLUID_INK_COLOR,
       },
     });
 
@@ -107,6 +112,7 @@ export class PlayerShooting implements Component {
       scene: this.scene,
       material: this.inkZoneMaterial,
       streamFieldMap: this.streamFieldMap,
+      registry: this.inkZoneRegistry,
       playerInk,
       config: {
         intervalSec: PLAYER_BULLET_INK_TRAIL_INTERVAL_SEC,

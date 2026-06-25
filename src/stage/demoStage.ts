@@ -15,6 +15,7 @@ import { createQuad } from "../scene/primitives";
 import type { Scene } from "../scene/scene";
 import type { StreamSource } from "../fluid/streamSource";
 import type { StreamFieldMap } from "../fluid/streamFieldMap";
+import { InkZoneRegistry } from "../scene/inkZoneRegistry";
 
 export type GameStage = {
   player: GameObject;
@@ -22,6 +23,7 @@ export type GameStage = {
   shelters: GameObject[];
   streams: GameObject[];
   streamFieldMap: StreamFieldMap;
+  inkZoneRegistry: InkZoneRegistry;
 };
 
 export function createDemoStage(args: {
@@ -56,6 +58,8 @@ export function createDemoStage(args: {
     input,
     onShelterChanged,
   } = args;
+
+  const inkZoneRegistry = new InkZoneRegistry();
 
   const shelterMesh = createQuad(1);
   const shelter = createShelterObject({
@@ -92,6 +96,7 @@ export function createDemoStage(args: {
     material,
     fluidSim,
     target: player.transform,
+    inkZoneRegistry,
   });
 
   player.addComponent(new PlayerShooting({
@@ -104,6 +109,7 @@ export function createDemoStage(args: {
     splatForce,
     inkZoneMaterial,
     streamFieldMap,
+    inkZoneRegistry,
   }));
 
   return {
@@ -112,5 +118,6 @@ export function createDemoStage(args: {
     shelters: [shelter],
     streams: [stream],
     streamFieldMap,
+    inkZoneRegistry,
   };
 }

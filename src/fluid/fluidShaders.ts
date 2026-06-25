@@ -11,6 +11,7 @@ import subtractGradient from "../shaders/subtractGradientShader.frag?raw";
 import advection from "../shaders/advectionShader.frag?raw";
 import clear from "../shaders/clearShader.frag?raw";
 import splat from "../shaders/splatShader.frag?raw";
+import dyeFromMask from "../shaders/dyeFromMaskShader.frag?raw";
 import copy from "../shaders/copyShader.frag?raw";
 
 export type FluidShaderPrograms = {
@@ -23,6 +24,7 @@ export type FluidShaderPrograms = {
   advection: Program;
   clear: Program;
   splat: Program;
+  dyeFromMask: Program;
 };
 
 export type FluidProgramBundle = {
@@ -44,6 +46,7 @@ export function createFluidShaderPrograms(
       advection: shaderLib.load("advection", baseVert, advection),
       clear: shaderLib.load("clear", baseVert, clear),
       splat: shaderLib.load("splat", baseVert, splat),
+      dyeFromMask: shaderLib.load("dyeFromMask", baseVert, dyeFromMask),
     },
     copyProgram: shaderLib.load("copy", baseVert, copy),
   };

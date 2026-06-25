@@ -4,6 +4,7 @@ import type { Component } from "./component";
 import type { GameObject } from "./gameObject";
 import { createInkZone } from "./inkZoneFactory";
 import type { InkZoneConfig } from "./inkZone";
+import type { InkZoneRegistry } from "./inkZoneRegistry";
 import type { IMaterial } from "./material";
 import type { PlayerInk } from "./playerInk";
 import type { Scene } from "./scene";
@@ -23,6 +24,7 @@ export class ProjectileInkTrail implements Component {
   private readonly scene: Scene;
   private readonly material: IMaterial;
   private readonly streamFieldMap: StreamFieldMap;
+  private readonly registry: InkZoneRegistry;
   private readonly playerInk: PlayerInk;
   private readonly config: ProjectileInkTrailConfig;
   private elapsed = 0;
@@ -33,6 +35,7 @@ export class ProjectileInkTrail implements Component {
     scene: Scene;
     material: IMaterial;
     streamFieldMap: StreamFieldMap;
+    registry: InkZoneRegistry;
     playerInk: PlayerInk;
     config: ProjectileInkTrailConfig;
   }) {
@@ -40,6 +43,7 @@ export class ProjectileInkTrail implements Component {
     this.scene = args.scene;
     this.material = args.material;
     this.streamFieldMap = args.streamFieldMap;
+    this.registry = args.registry;
     this.playerInk = args.playerInk;
     this.config = args.config;
   }
@@ -67,6 +71,7 @@ export class ProjectileInkTrail implements Component {
       scene: this.scene,
       material: this.material,
       streamFieldMap: this.streamFieldMap,
+      registry: this.registry,
       position: vec3.clone(this.owner.transform.getWorldPosition()),
       config: this.config.zoneConfig,
     });

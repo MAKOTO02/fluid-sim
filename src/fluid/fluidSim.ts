@@ -18,6 +18,7 @@ type FluidShaders = {
     advection: Program;
     clear: Program;
     splat: Program;
+    dyeFromMask: Program;
 };
 type FluidConfig = {
     CURL: number;
@@ -29,6 +30,7 @@ type FluidConfig = {
     SPLAT_RADIUS: number;
     LOGIC_DISSIPATION: number;
     STREAM_FORCE_SCALE: number;
+    SHELTER_DYE_ADVECTION_SCALE: number;
 };
 
 export class FluidSim{
@@ -142,6 +144,16 @@ export class FluidSim{
     getPaused(){
         return this.paused;
     }
+    reset() {
+        this.clearDoubleFBO(this.velocity);
+        this.clearDoubleFBO(this.dye);
+        this.clearDoubleFBO(this.logicDye);
+        this.clearFBO(this.curl);
+        this.clearFBO(this.divergence);
+        this.clearDoubleFBO(this.pressure);
+        this.clearObstacle();
+        this.clearStream();
+    }
     setStreamForceEnabled(enabled: boolean) {
         this.streamForceEnabled = enabled;
     }
@@ -173,6 +185,32 @@ export class FluidSim{
 
         gl.uniform1i(locTarget, this.dye.read.attach(0));
         gl.uniform3f(locColor, color.r * a, color.g * a, color.b * a);
+
+        this.blit(this.dye.write);
+        this.dye.swap();
+    }
+
+    addDyeFromMask(
+        maskTexture: WebGLTexture,
+        color: { r: number; g: number; b: number; a?: number },
+        strength = 1.0
+    ) {
+        const gl = this.gl;
+        const program = this.shaders.dyeFromMask;
+        const a = color.a ?? 1.0;
+
+        program.bind();
+        const locTarget = getRequiredUniform(program, "uTarget");
+        const locMask = getRequiredUniform(program, "uMask");
+        const locColor = getRequiredUniform(program, "uColor");
+        const locStrength = getRequiredUniform(program, "uStrength");
+
+        gl.uniform1i(locTarget, this.dye.read.attach(0));
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, maskTexture);
+        gl.uniform1i(locMask, 1);
+        gl.uniform3f(locColor, color.r * a, color.g * a, color.b * a);
+        gl.uniform1f(locStrength, strength);
 
         this.blit(this.dye.write);
         this.dye.swap();
@@ -276,6 +314,20 @@ export class FluidSim{
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
+    private clearFBO(target: FBO) {
+        const gl = this.gl;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
+        gl.viewport(0, 0, target.width, target.height);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
+    private clearDoubleFBO(target: DoubleFBO) {
+        this.clearFBO(target.read);
+        this.clearFBO(target.write);
     }
 
     private computeCurl(rect: ViewRect){
@@ -389,6 +441,7 @@ export class FluidSim{
 
         const locAdvectDt = getOptionalUniform(prog, "advectDt");
         const locDecayDt  = getOptionalUniform(prog, "decayDt");
+        const locObstacleAdvectionScale = getOptionalUniform(prog, "uObstacleAdvectionScale");
 
         const advectDt = decayOnly ? 0.0 : dt;
         const decayDt  = dt;
@@ -406,6 +459,7 @@ export class FluidSim{
         this.gl.uniform1i(locuVelocity, velocityId);
         this.gl.uniform1i(locuSource, velocityId);
         this.gl.uniform1f(locDissipation, this.config.VELOCITY_DISSIPATION);
+        if (locObstacleAdvectionScale) this.gl.uniform1f(locObstacleAdvectionScale, 1.0);
         this.blit(this.velocity.write);
         this.velocity.swap();
 
@@ -414,6 +468,9 @@ export class FluidSim{
         this.gl.uniform1i(locuVelocity, this.velocity.read.attach(0));
         this.gl.uniform1i(locuSource, this.dye.read.attach(1));
         this.gl.uniform1f(locDissipation, this.config.DENSITY_DISSIPATION);
+        if (locObstacleAdvectionScale) {
+            this.gl.uniform1f(locObstacleAdvectionScale, this.config.SHELTER_DYE_ADVECTION_SCALE);
+        }
         this.blit(this.dye.write);
         this.dye.swap();
 
@@ -425,6 +482,9 @@ export class FluidSim{
         this.gl.uniform1i(locuVelocity, this.velocity.read.attach(0));
         this.gl.uniform1i(locuSource,  this.logicDye.read.attach(1));
         this.gl.uniform1f(locDissipation, this.config.LOGIC_DISSIPATION);
+        if (locObstacleAdvectionScale) {
+            this.gl.uniform1f(locObstacleAdvectionScale, this.config.SHELTER_DYE_ADVECTION_SCALE);
+        }
 
         this.blit(this.logicDye.write);
         this.logicDye.swap();

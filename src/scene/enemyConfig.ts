@@ -32,6 +32,7 @@ export type EnemyConfig = {
   id: number,
   hitPoint: number;
   contactDamagePerSecond: number;
+  inkDamagePerSecond: number;
   materialKey: keyof GameMaterials
   material?: IMaterial;
   visual: EnemyVisualFactory;
@@ -48,6 +49,7 @@ const simpleEnemyConfig: EnemyConfig = {
   id: 0,
   hitPoint: 10,
   contactDamagePerSecond: 12,
+  inkDamagePerSecond: 2,
   visual: sphereEnemyVisual,
   materialKey: "enemySmall",
 

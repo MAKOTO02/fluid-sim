@@ -9,6 +9,7 @@ import { FluidEmitter } from "./fluidEmitter";
 import { GameObject } from "./gameObject";
 import { Health } from "./health";
 import { PlayerInk } from "./playerInk";
+import { PLAYER_FLUID_INK_COLOR } from "./playerInkColor";
 import { PlayerController } from "./playerController";
 import { RigidBody } from "./rigidBody";
 import { ScreenBoundsLimiter } from "./screenBoundsLimiter";
@@ -70,7 +71,7 @@ export function createPlayer(args: {
     fluidSim,
     canvas,
     SPLAT_FORCE,
-    { r: 0, g: 0, b: 0.5 }
+    PLAYER_FLUID_INK_COLOR
   );
 
   emitter.addComponent(fluidEmitter);
