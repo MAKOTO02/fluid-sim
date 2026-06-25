@@ -28,8 +28,8 @@ export function createGamePrograms(
 export function createGameMaterials(
   programs: GamePrograms
 ): GameMaterials {
-  const playerColor = vec4.fromValues(1, 0.8, 0.8, 0);
-  const enemyColor  = vec4.fromValues(1, 0.3, 0.3, 0);
+  const playerColor = vec4.fromValues(1, 0.8, 0.8, 1);
+  const enemyColor  = vec4.fromValues(1, 0.3, 0.3, 1);
 
   const playerMat = new UnlitColorMaterial(programs.unlitColor, playerColor);
   const enemyMat  = new UnlitColorMaterial(programs.unlitColor, enemyColor);

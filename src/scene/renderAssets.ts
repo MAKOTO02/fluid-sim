@@ -22,7 +22,7 @@ export function createRenderAssets(shaderLib: ShaderLibrary): RenderAssets {
   const programs = createGamePrograms(shaderLib);
   const materials = createGameMaterials(programs);
 
-  const obstacleColor = vec4.fromValues(1, 0, 0, 0);
+  const obstacleColor = vec4.fromValues(1, 0, 0, 1);
   const obstacleMaterial = new UnlitColorMaterial(programs.unlitColor, obstacleColor);
   const debugFrameColor = vec4.fromValues(1, 1, 1, 0.35);
   const debugFrameMaterial = new UnlitColorMaterial(programs.unlitColor, debugFrameColor);

@@ -9,5 +9,5 @@ uniform vec2 uUVScale;
 
 void main(){
     vec2 uv = vTexCoord * uUVScale + uUVOffset;
-    gl_FragColor = texture2D(uTexture, uv) + vec4(0, 0, 0, 0.1);
+    gl_FragColor = texture2D(uTexture, uv);
 }

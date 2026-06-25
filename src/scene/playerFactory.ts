@@ -16,7 +16,7 @@ import type { Scene } from "./scene";
 
 const SPLAT_FORCE = 2000;
 const PLAYER_HIT_RADIUS = 0.015;
-const PLAYER_VISUAL_SIZE = 0.16;
+const PLAYER_VISUAL_SIZE = 0.4;
 const PLAYER_HEALTH_CONFIG = {
   max: 100,
 } as const;
@@ -30,17 +30,17 @@ export function createPlayer(args: {
   scene: Scene;
   gl: WebGLRenderingContext | WebGL2RenderingContext;
   canvas: HTMLCanvasElement;
-  material: IMaterial;
+  visualMaterial: IMaterial;
   fluidSim: FluidSim;
   input: MovementInput;
 }): PlayerSetup {
-  const { scene, gl, canvas, material, fluidSim, input } = args;
+  const { scene, gl, canvas, visualMaterial, fluidSim, input } = args;
 
   const player = new GameObject("Player");
   player.addComponent(new SphereCollider(scene, PLAYER_HIT_RADIUS, "player", true));
   scene.addObject(player);
 
-  const playerController = new PlayerController(input, 50, 1, 20);
+  const playerController = new PlayerController(input, 60, 1, 20);
   const rb = new RigidBody(10);
   rb.freezePosZ = true;
   const fluidDrag = new FluidDrag(scene, fluidSim, 0.05);
@@ -51,7 +51,7 @@ export function createPlayer(args: {
   player.addComponent(new ScreenBoundsLimiter(scene, 0.01));
 
   const visual = createQuadVisualObject(gl, scene, {
-    material,
+    material: visualMaterial,
     size: PLAYER_VISUAL_SIZE,
     name: "PlayerVisual",
     layer: SceneLayers.default,

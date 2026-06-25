@@ -9,7 +9,7 @@ import { makeStraightPath } from "./projectileLocalPath";
 import { Projectile } from "./projectile";
 import type { Scene } from "./scene";
 
-const MAX_ACTIVE_PLAYER_BULLETS = 6;
+const MAX_ACTIVE_PLAYER_BULLETS = 10;
 
 export class PlayerShooting implements Component {
   enabled = true;

@@ -1,5 +1,7 @@
 import type { GameState } from "../app/gameController";
+import type { GameObjectSnapshot } from "../app/worldSnapshot";
 import type { HealthSnapshot } from "../scene/health";
+import { EnemyHealthPanel } from "./enemyHealthPanel";
 import { PauseMenu } from "./pauseMenu";
 import { PlayerHealthBar } from "./playerHealthBar";
 import { ResultMenu } from "./resultMenu";
@@ -12,12 +14,14 @@ export type GameUiOptions = {
 };
 
 export class GameUi {
+  private readonly enemyHealthPanel: EnemyHealthPanel;
   private readonly pauseMenu: PauseMenu;
   private readonly playerHealthBar: PlayerHealthBar;
   private readonly resultMenu: ResultMenu;
   private readonly startMenu: StartMenu;
 
   constructor(options: GameUiOptions) {
+    this.enemyHealthPanel = new EnemyHealthPanel();
     this.startMenu = new StartMenu({
       onStart: options.onStart,
     });
@@ -32,6 +36,10 @@ export class GameUi {
 
   setPlayerHealth(health?: HealthSnapshot): void {
     this.playerHealthBar.setHealth(health);
+  }
+
+  setEnemyHealth(enemies: GameObjectSnapshot[]): void {
+    this.enemyHealthPanel.setEnemies(enemies);
   }
 
   setGameState(state: GameState) {
@@ -51,6 +59,7 @@ export class GameUi {
   }
 
   dispose() {
+    this.enemyHealthPanel.dispose();
     this.startMenu.dispose();
     this.pauseMenu.dispose();
     this.resultMenu.dispose();
