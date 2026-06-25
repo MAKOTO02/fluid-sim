@@ -7,9 +7,15 @@ import type { GameObject } from "./gameObject";
 import { createProjectileSphereLocal } from "./projectileActor";
 import { makeStraightPath } from "./projectileLocalPath";
 import { Projectile } from "./projectile";
+import { ProjectileInkTrail } from "./projectileInkTrail";
+import { PlayerInk } from "./playerInk";
 import type { Scene } from "./scene";
+import type { StreamFieldMap } from "../fluid/streamFieldMap";
 
 const MAX_ACTIVE_PLAYER_BULLETS = 10;
+const PLAYER_BULLET_INK_TRAIL_INTERVAL_SEC = 0.08;
+const PLAYER_BULLET_INK_ZONE_COST = 0.1;
+const PLAYER_BULLET_MAX_INK_ZONES = 20;
 
 export class PlayerShooting implements Component {
   enabled = true;
@@ -22,6 +28,8 @@ export class PlayerShooting implements Component {
   private readonly fluidSim: FluidSim;
   private readonly canvas: HTMLCanvasElement;
   private readonly splatForce: number;
+  private readonly inkZoneMaterial: IMaterial;
+  private readonly streamFieldMap: StreamFieldMap;
   private readonly activeBullets = new Set<GameObject>();
 
   constructor(args: {
@@ -32,6 +40,8 @@ export class PlayerShooting implements Component {
     fluidSim: FluidSim;
     canvas: HTMLCanvasElement;
     splatForce: number;
+    inkZoneMaterial: IMaterial;
+    streamFieldMap: StreamFieldMap;
   }) {
     this.gl = args.gl;
     this.scene = args.scene;
@@ -40,6 +50,8 @@ export class PlayerShooting implements Component {
     this.fluidSim = args.fluidSim;
     this.canvas = args.canvas;
     this.splatForce = args.splatForce;
+    this.inkZoneMaterial = args.inkZoneMaterial;
+    this.streamFieldMap = args.streamFieldMap;
   }
 
   update() {
@@ -54,6 +66,8 @@ export class PlayerShooting implements Component {
   private shootAt(u: number, v: number) {
     if (!this.owner) return;
     if (this.activeBullets.size >= MAX_ACTIVE_PLAYER_BULLETS) return;
+    const playerInk = this.owner.getComponent(PlayerInk);
+    if (!playerInk) return;
 
     const cam = this.scene.MainCamera;
     if (!cam) return;
@@ -88,6 +102,26 @@ export class PlayerShooting implements Component {
     });
 
     this.activeBullets.add(bullet);
+    bullet.addComponent(new ProjectileInkTrail({
+      gl: this.gl,
+      scene: this.scene,
+      material: this.inkZoneMaterial,
+      streamFieldMap: this.streamFieldMap,
+      playerInk,
+      config: {
+        intervalSec: PLAYER_BULLET_INK_TRAIL_INTERVAL_SEC,
+        inkCost: PLAYER_BULLET_INK_ZONE_COST,
+        maxZones: PLAYER_BULLET_MAX_INK_ZONES,
+        zoneConfig: {
+          initialRadius: 0.12,
+          lifeSec: 1.4,
+          decayRate: 1.1,
+          minStrength: 0.15,
+          streamInfluence: 3000,
+        },
+      },
+    }));
+
     const projectile = bullet.getComponent(Projectile);
     if (projectile) {
       projectile.onDestroyed = () => {

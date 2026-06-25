@@ -1,6 +1,7 @@
 import type { GameState } from "../app/gameController";
 import type { GameObjectSnapshot } from "../app/worldSnapshot";
 import type { HealthSnapshot } from "../scene/health";
+import type { PlayerInkSnapshot } from "../scene/playerInk";
 import { EnemyHealthPanel } from "./enemyHealthPanel";
 import { PauseMenu } from "./pauseMenu";
 import { PlayerHealthBar } from "./playerHealthBar";
@@ -36,6 +37,10 @@ export class GameUi {
 
   setPlayerHealth(health?: HealthSnapshot): void {
     this.playerHealthBar.setHealth(health);
+  }
+
+  setPlayerInk(ink?: PlayerInkSnapshot): void {
+    this.playerHealthBar.setInk(ink);
   }
 
   setEnemyHealth(enemies: GameObjectSnapshot[]): void {

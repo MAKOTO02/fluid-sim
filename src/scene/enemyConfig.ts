@@ -7,7 +7,7 @@ import { vec3 } from "gl-matrix";
 import { createProjectileSphereLocal } from "./projectileActor";
 import { Health } from "./health";
 import type { IMaterial } from "./material";
-import { Obstacle } from "./obstacle";
+import { Shelter } from "./shelter";
 import { Projectile } from "./projectile";
 import { FluidSim } from "../fluid/fluidSim";
 import {
@@ -102,14 +102,14 @@ const simpleEnemyConfig: EnemyConfig = {
         const projectile = bullet.getComponent(Projectile);
         if (projectile) {
           projectile.onHitCallback = (_self, other) => {
-            const obstacle = other.getComponent(Obstacle);
-            if (obstacle && !obstacle.isPlayerInside()) return;
+            const shelter = other.getComponent(Shelter);
+            if (shelter && !shelter.isPlayerInside()) return;
 
             const health = other.getComponent(Health);
             health?.applyDamage(ENEMY_BULLET_DAMAGE);
 
-            if (obstacle && health?.isDead()) {
-              obstacle.destroy();
+            if (shelter && health?.isDead()) {
+              shelter.destroy();
             }
           };
         }

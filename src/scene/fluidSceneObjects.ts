@@ -14,12 +14,13 @@ import { DyeVisualMaterial } from "./materials/dyeVisualMaterial";
 import { UnlitTextureMaterial } from "./materials/unlitTexMaterial";
 import { BoxCollider } from "./collider";
 import { Health } from "./health";
-import { Obstacle } from "./obstacle";
+import { Shelter } from "./shelter";
 import type { StreamSource } from "../fluid/streamSource";
 import { StreamSourceComponent } from "./streamSourceComponent";
 
-const OBSTACLE_HEALTH = 200;
-const OBSTACLE_RECOVERY_PER_SECOND = 25;
+const SHELTER_HEALTH = 200;
+const SHELTER_RECOVERY_PER_SECOND = 25;
+const SHELTER_INK_RECOVERY_PER_SECOND = 35;
 
 export type FluidPlaneObject = {
   fluidPlane: GameObject;
@@ -54,31 +55,32 @@ export function createFluidPlaneObject(args: {
   return { fluidPlane, dyeVisualMaterial, fitter };
 }
 
-export function createObstacleObject(args: {
+export function createShelterObject(args: {
   scene: Scene;
   gl: WebGLRenderingContext | WebGL2RenderingContext;
   mesh: Mesh;
   material: IMaterial;
   layer: number;
-  onObstacleChanged?: () => void;
+  onShelterChanged?: () => void;
 }): GameObject {
-  const { scene, gl, mesh, material, layer, onObstacleChanged } = args;
+  const { scene, gl, mesh, material, layer, onShelterChanged } = args;
 
-  const obstacle = new GameObject("obstacle");
-  obstacle.layer = layer;
-  obstacle.addComponent(new MeshFilter(mesh));
-  obstacle.addComponent(new MeshRenderer(gl, material));
-  obstacle.addComponent(new BoxCollider(scene, vec3.fromValues(0.5, 0.5, 0.05), "wall", true));
-  obstacle.addComponent(new Health(OBSTACLE_HEALTH));
-  obstacle.addComponent(new Obstacle({
-    onDestroyed: onObstacleChanged,
-    recoveryPerSecond: OBSTACLE_RECOVERY_PER_SECOND,
+  const shelter = new GameObject("shelter");
+  shelter.layer = layer;
+  shelter.addComponent(new MeshFilter(mesh));
+  shelter.addComponent(new MeshRenderer(gl, material));
+  shelter.addComponent(new BoxCollider(scene, vec3.fromValues(0.5, 0.5, 0.05), "wall", true));
+  shelter.addComponent(new Health(SHELTER_HEALTH));
+  shelter.addComponent(new Shelter({
+    onDestroyed: onShelterChanged,
+    recoveryPerSecond: SHELTER_RECOVERY_PER_SECOND,
+    inkRecoveryPerSecond: SHELTER_INK_RECOVERY_PER_SECOND,
   }));
-  obstacle.transform.setScale(vec3.fromValues(0.5, 0.5, 0.5));
-  obstacle.transform.translate(vec3.fromValues(-2, -1.5, 0));
+  shelter.transform.setScale(vec3.fromValues(0.5, 0.5, 0.5));
+  shelter.transform.translate(vec3.fromValues(-2, -1.5, 0));
 
-  scene.addObject(obstacle);
-  return obstacle;
+  scene.addObject(shelter);
+  return shelter;
 }
 
 export function createStreamObject(args: {

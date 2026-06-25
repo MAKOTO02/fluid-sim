@@ -13,8 +13,8 @@ export function formatWorldSnapshot(snapshot: WorldSnapshot): string {
     `Player: ${formatObject(stage.player)}`,
     `Enemies: ${stage.enemies.length}`,
     ...stage.enemies.map((enemy) => `  ${formatObject(enemy)}`),
-    `Obstacles: ${stage.obstacles.length}`,
-    ...stage.obstacles.map((obstacle) => `  ${formatObject(obstacle)}`),
+    `Shelters: ${stage.shelters.length}`,
+    ...stage.shelters.map((shelter) => `  ${formatObject(shelter)}`),
     `Streams: ${stage.streams.length}`,
     ...stage.streams.map((stream) => `  ${formatObject(stream)}`),
   ].join("\n");
@@ -23,7 +23,8 @@ export function formatWorldSnapshot(snapshot: WorldSnapshot): string {
 function formatObject(obj: GameObjectSnapshot) {
   const velocity = obj.velocity ? ` vel=${formatVec3(obj.velocity)}` : "";
   const health = obj.health ? ` hp=${formatNumber(obj.health.current)}/${formatNumber(obj.health.max)}` : "";
-  return `#${obj.id} ${obj.name} pos=${formatVec3(obj.position)} scale=${formatVec3(obj.localScale)}${velocity}${health}`;
+  const ink = obj.ink ? ` ink=${formatNumber(obj.ink.current)}/${formatNumber(obj.ink.max)}` : "";
+  return `#${obj.id} ${obj.name} pos=${formatVec3(obj.position)} scale=${formatVec3(obj.localScale)}${velocity}${health}${ink}`;
 }
 
 function formatVec3(v: Vec3Snapshot) {

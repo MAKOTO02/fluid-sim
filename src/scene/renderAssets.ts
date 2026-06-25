@@ -11,7 +11,8 @@ import { createGameMaterials, createGamePrograms, type GameMaterials } from "./g
 
 export type RenderAssets = {
   materials: GameMaterials;
-  obstacleMaterial: IMaterial;
+  shelterMaterial: IMaterial;
+  inkZoneMaterial: IMaterial;
   debugFrameMaterial: IMaterial;
   unlitTexProgram: Program;
   streamVisualProgram: Program;
@@ -22,8 +23,10 @@ export function createRenderAssets(shaderLib: ShaderLibrary): RenderAssets {
   const programs = createGamePrograms(shaderLib);
   const materials = createGameMaterials(programs);
 
-  const obstacleColor = vec4.fromValues(1, 0, 0, 1);
-  const obstacleMaterial = new UnlitColorMaterial(programs.unlitColor, obstacleColor);
+  const shelterColor = vec4.fromValues(1, 0, 0, 1);
+  const shelterMaterial = new UnlitColorMaterial(programs.unlitColor, shelterColor);
+  const inkZoneColor = vec4.fromValues(0.1, 1, 0.45, 0.35);
+  const inkZoneMaterial = new UnlitColorMaterial(programs.unlitColor, inkZoneColor);
   const debugFrameColor = vec4.fromValues(1, 1, 1, 0.35);
   const debugFrameMaterial = new UnlitColorMaterial(programs.unlitColor, debugFrameColor);
 
@@ -33,7 +36,8 @@ export function createRenderAssets(shaderLib: ShaderLibrary): RenderAssets {
 
   return {
     materials,
-    obstacleMaterial,
+    shelterMaterial,
+    inkZoneMaterial,
     debugFrameMaterial,
     unlitTexProgram,
     streamVisualProgram,

@@ -8,6 +8,7 @@ import { FluidDrag } from "./fluidDrag";
 import { FluidEmitter } from "./fluidEmitter";
 import { GameObject } from "./gameObject";
 import { Health } from "./health";
+import { PlayerInk } from "./playerInk";
 import { PlayerController } from "./playerController";
 import { RigidBody } from "./rigidBody";
 import { ScreenBoundsLimiter } from "./screenBoundsLimiter";
@@ -18,6 +19,9 @@ const SPLAT_FORCE = 2000;
 const PLAYER_HIT_RADIUS = 0.015;
 const PLAYER_VISUAL_SIZE = 0.4;
 const PLAYER_HEALTH_CONFIG = {
+  max: 100,
+} as const;
+const PLAYER_INK_CONFIG = {
   max: 100,
 } as const;
 
@@ -45,6 +49,7 @@ export function createPlayer(args: {
   rb.freezePosZ = true;
   const fluidDrag = new FluidDrag(scene, fluidSim, 0.05);
   player.addComponent(new Health(PLAYER_HEALTH_CONFIG.max));
+  player.addComponent(new PlayerInk(PLAYER_INK_CONFIG.max));
   player.addComponent(playerController);
   player.addComponent(rb);
   player.addComponent(fluidDrag);

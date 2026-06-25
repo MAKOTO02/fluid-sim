@@ -1,9 +1,12 @@
 import type { HealthSnapshot } from "../scene/health";
+import type { PlayerInkSnapshot } from "../scene/playerInk";
 
 export class PlayerHealthBar {
   private readonly root: HTMLDivElement;
-  private readonly fill: HTMLDivElement;
-  private readonly label: HTMLDivElement;
+  private readonly healthFill: HTMLDivElement;
+  private readonly healthLabel: HTMLDivElement;
+  private readonly inkFill: HTMLDivElement;
+  private readonly inkLabel: HTMLDivElement;
 
   constructor() {
     this.root = document.createElement("div");
@@ -21,10 +24,62 @@ export class PlayerHealthBar {
     this.root.style.fontSize = "12px";
     this.root.style.pointerEvents = "none";
 
-    this.label = document.createElement("div");
-    this.label.textContent = "HP 0 / 0";
-    this.label.style.marginBottom = "5px";
-    this.label.style.fontWeight = "700";
+    const healthRow = this.createBarRow("HP 0 / 0", "#5ee985");
+    this.healthLabel = healthRow.label;
+    this.healthFill = healthRow.fill;
+
+    const inkRow = this.createBarRow("INK 0 / 0", "#42d6ff");
+    this.inkLabel = inkRow.label;
+    this.inkFill = inkRow.fill;
+    inkRow.container.style.marginTop = "8px";
+
+    this.root.append(healthRow.container, inkRow.container);
+    document.body.appendChild(this.root);
+  }
+
+  setHealth(health?: HealthSnapshot): void {
+    if (!health || health.max <= 0) {
+      this.healthLabel.textContent = "HP -- / --";
+      this.healthFill.style.width = "0%";
+      return;
+    }
+
+    const current = Math.max(0, Math.min(health.current, health.max));
+    const ratio = current / health.max;
+    this.healthLabel.textContent = `HP ${Math.ceil(current)} / ${Math.ceil(health.max)}`;
+    this.healthFill.style.width = `${ratio * 100}%`;
+    this.healthFill.style.background = ratio > 0.35 ? "#5ee985" : "#ff5c64";
+  }
+
+  setInk(ink?: PlayerInkSnapshot): void {
+    if (!ink || ink.max <= 0) {
+      this.inkLabel.textContent = "INK -- / --";
+      this.inkFill.style.width = "0%";
+      return;
+    }
+
+    const current = Math.max(0, Math.min(ink.current, ink.max));
+    const ratio = current / ink.max;
+    this.inkLabel.textContent = `INK ${Math.ceil(current)} / ${Math.ceil(ink.max)}`;
+    this.inkFill.style.width = `${ratio * 100}%`;
+    this.inkFill.style.background = ratio > 0.25 ? "#42d6ff" : "#ffb547";
+  }
+
+  dispose(): void {
+    this.root.remove();
+  }
+
+  private createBarRow(labelText: string, color: string): {
+    container: HTMLDivElement;
+    label: HTMLDivElement;
+    fill: HTMLDivElement;
+  } {
+    const container = document.createElement("div");
+
+    const label = document.createElement("div");
+    label.textContent = labelText;
+    label.style.marginBottom = "5px";
+    label.style.fontWeight = "700";
 
     const track = document.createElement("div");
     track.style.height = "10px";
@@ -32,33 +87,16 @@ export class PlayerHealthBar {
     track.style.borderRadius = "5px";
     track.style.background = "rgba(255, 255, 255, 0.14)";
 
-    this.fill = document.createElement("div");
-    this.fill.style.width = "0%";
-    this.fill.style.height = "100%";
-    this.fill.style.borderRadius = "5px";
-    this.fill.style.background = "#5ee985";
-    this.fill.style.transition = "width 120ms linear";
+    const fill = document.createElement("div");
+    fill.style.width = "0%";
+    fill.style.height = "100%";
+    fill.style.borderRadius = "5px";
+    fill.style.background = color;
+    fill.style.transition = "width 120ms linear";
 
-    track.appendChild(this.fill);
-    this.root.append(this.label, track);
-    document.body.appendChild(this.root);
-  }
+    track.appendChild(fill);
+    container.append(label, track);
 
-  setHealth(health?: HealthSnapshot): void {
-    if (!health || health.max <= 0) {
-      this.label.textContent = "HP -- / --";
-      this.fill.style.width = "0%";
-      return;
-    }
-
-    const current = Math.max(0, Math.min(health.current, health.max));
-    const ratio = current / health.max;
-    this.label.textContent = `HP ${Math.ceil(current)} / ${Math.ceil(health.max)}`;
-    this.fill.style.width = `${ratio * 100}%`;
-    this.fill.style.background = ratio > 0.35 ? "#5ee985" : "#ff5c64";
-  }
-
-  dispose(): void {
-    this.root.remove();
+    return { container, label, fill };
   }
 }

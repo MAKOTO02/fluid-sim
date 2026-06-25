@@ -2,7 +2,7 @@ import type { FluidSim } from "../fluid/fluidSim";
 import type { Program } from "../gl/program";
 import type { GameInput } from "../input/inputController";
 import {
-  createObstacleObject,
+  createShelterObject,
   createStreamObject,
 } from "../scene/fluidSceneObjects";
 import type { GameObject } from "../scene/gameObject";
@@ -14,12 +14,14 @@ import { PlayerShooting } from "../scene/playerShooting";
 import { createQuad } from "../scene/primitives";
 import type { Scene } from "../scene/scene";
 import type { StreamSource } from "../fluid/streamSource";
+import type { StreamFieldMap } from "../fluid/streamFieldMap";
 
 export type GameStage = {
   player: GameObject;
   enemies: GameObject[];
-  obstacles: GameObject[];
+  shelters: GameObject[];
   streams: GameObject[];
+  streamFieldMap: StreamFieldMap;
 };
 
 export function createDemoStage(args: {
@@ -28,13 +30,15 @@ export function createDemoStage(args: {
   canvas: HTMLCanvasElement;
   material: IMaterial;
   playerVisualMaterial: IMaterial;
-  obstacleMaterial: IMaterial;
+  inkZoneMaterial: IMaterial;
+  shelterMaterial: IMaterial;
   unlitTexProgram: Program;
   bulletStreamTexture: WebGLTexture;
   bulletStreamSource: StreamSource;
+  streamFieldMap: StreamFieldMap;
   fluidSim: FluidSim;
   input: GameInput;
-  onObstacleChanged?: () => void;
+  onShelterChanged?: () => void;
 }): GameStage {
   const {
     scene,
@@ -42,23 +46,25 @@ export function createDemoStage(args: {
     canvas,
     material,
     playerVisualMaterial,
-    obstacleMaterial,
+    inkZoneMaterial,
+    shelterMaterial,
     unlitTexProgram,
     bulletStreamTexture,
     bulletStreamSource,
+    streamFieldMap,
     fluidSim,
     input,
-    onObstacleChanged,
+    onShelterChanged,
   } = args;
 
-  const obstacleMesh = createQuad(1);
-  const obstacle = createObstacleObject({
+  const shelterMesh = createQuad(1);
+  const shelter = createShelterObject({
     scene,
     gl,
-    mesh: obstacleMesh,
-    material: obstacleMaterial,
+    mesh: shelterMesh,
+    material: shelterMaterial,
     layer: SceneLayers.obstacle,
-    onObstacleChanged,
+    onShelterChanged,
   });
 
   const stream = createStreamObject({
@@ -96,12 +102,15 @@ export function createDemoStage(args: {
     fluidSim,
     canvas,
     splatForce,
+    inkZoneMaterial,
+    streamFieldMap,
   }));
 
   return {
     player,
     enemies: [enemy],
-    obstacles: [obstacle],
+    shelters: [shelter],
     streams: [stream],
+    streamFieldMap,
   };
 }

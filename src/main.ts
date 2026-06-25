@@ -9,6 +9,7 @@ import { createFluidShaderPrograms } from "./fluid/fluidShaders";
 import { createFluidSim } from "./fluid/createFluidSim";
 import { bakeBulletVectorField } from "./fluid/bulletStreamField";
 import { DEFAULT_BULLET_STREAM_SOURCE } from "./fluid/streamSource";
+import { createStreamFieldMap } from "./fluid/streamFieldMap";
 import { InputController } from "./input/inputController";
 import { DebugPanel } from "./debug/debugPanel";
 import { DebugToggleButton } from "./debug/debugToggleButton";
@@ -62,6 +63,7 @@ new DebugToggleButton({
 });
 
 const bulletStreamSource = DEFAULT_BULLET_STREAM_SOURCE;
+const streamFieldMap = createStreamFieldMap(bulletStreamSource);
 const bulletStreamTexture = bakeBulletVectorField(
   gl,
   shaderLib,
@@ -74,16 +76,16 @@ const bulletStreamTexture = bakeBulletVectorField(
 gl.bindFramebuffer(gl.FRAMEBUFFER, null); 
 gl.viewport(0, 0, canvas.width, canvas.height);
 
-let obstacleTargetUpdateRequested = false;
+let shelterTargetUpdateRequested = false;
 
-function requestObstacleTargetUpdate(): void {
-  obstacleTargetUpdateRequested = true;
+function requestShelterTargetUpdate(): void {
+  shelterTargetUpdateRequested = true;
 }
 
-function consumeObstacleTargetUpdateRequest(): boolean {
-  if (!obstacleTargetUpdateRequested) return false;
+function consumeShelterTargetUpdateRequest(): boolean {
+  if (!shelterTargetUpdateRequested) return false;
 
-  obstacleTargetUpdateRequested = false;
+  shelterTargetUpdateRequested = false;
   return true;
 }
 
@@ -94,8 +96,9 @@ const world = createGameWorld({
   renderAssets,
   bulletStreamTexture,
   bulletStreamSource,
+  streamFieldMap,
   input: inputController,
-  onObstacleChanged: requestObstacleTargetUpdate,
+  onShelterChanged: requestShelterTargetUpdate,
 });
 
 const {
@@ -114,6 +117,32 @@ function initializeFrameTargets() {
     fluidSim,
     obstacleLayer: SceneLayers.obstacle,
   });
+  splatInitialShelterInk();
+}
+
+function splatInitialShelterInk(): void {
+  const cam = scene.MainCamera;
+  if (!cam) return;
+
+  for (const shelter of world.stage.shelters) {
+    if (!shelter.active || shelter.destroyed) continue;
+
+    const center = shelter.transform.getWorldPosition();
+    const spreadX = shelter.transform.scale[0] * 0.35;
+    const spreadY = shelter.transform.scale[1] * 0.35;
+    const points = [
+      [0, 0],
+      [-spreadX, 0],
+      [spreadX, 0],
+      [0, -spreadY],
+      [0, spreadY],
+    ] as const;
+
+    for (const [dx, dy] of points) {
+      const uv = cam.worldToScreenUV([center[0] + dx, center[1] + dy, center[2]]);
+      fluidSim.splat(uv.u, uv.v, 0, 0, { r: 0.0, g: 0.85, b: 1.0, a: 0.75 }, canvas);
+    }
+  }
 }
 
 function updateFrame(dt: number) {
@@ -137,12 +166,13 @@ function updateFrame(dt: number) {
     dt,
   });
 
-  if (consumeObstacleTargetUpdateRequest()) {
+  if (consumeShelterTargetUpdateRequest()) {
     initializeFrameTargets();
   }
 
   const snapshot = createWorldSnapshot(world);
   gameUi.setPlayerHealth(snapshot.stage.player.health);
+  gameUi.setPlayerInk(snapshot.stage.player.ink);
   gameUi.setEnemyHealth(snapshot.stage.enemies);
   debugPanel.setText(formatWorldSnapshot(snapshot));
 

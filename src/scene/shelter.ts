@@ -2,29 +2,33 @@ import type { Component } from "./component";
 import type { GameObject } from "./gameObject";
 import { BoxCollider, type Collider } from "./collider";
 import { Health } from "./health";
+import { PlayerInk } from "./playerInk";
 
-export type ObstacleState = "active" | "destroyed";
+export type ShelterState = "active" | "destroyed";
 
-export type ObstacleOptions = {
+export type ShelterOptions = {
   onDestroyed?: () => void;
   recoveryPerSecond?: number;
+  inkRecoveryPerSecond?: number;
 };
 
-export class Obstacle implements Component {
+export class Shelter implements Component {
   enabled = true;
   owner?: GameObject;
 
-  private state: ObstacleState = "active";
+  private state: ShelterState = "active";
   private readonly onDestroyed?: () => void;
   private readonly recoveryPerSecond: number;
+  private readonly inkRecoveryPerSecond: number;
   private readonly playerContacts = new Set<Collider>();
 
-  constructor(options: ObstacleOptions = {}) {
+  constructor(options: ShelterOptions = {}) {
     this.onDestroyed = options.onDestroyed;
     this.recoveryPerSecond = options.recoveryPerSecond ?? 0;
+    this.inkRecoveryPerSecond = options.inkRecoveryPerSecond ?? 0;
   }
 
-  getState(): ObstacleState {
+  getState(): ShelterState {
     return this.state;
   }
 
@@ -58,10 +62,10 @@ export class Obstacle implements Component {
 
   update(dt: number): void {
     if (!this.enabled || this.state !== "active") return;
-    if (this.recoveryPerSecond <= 0) return;
+    if (this.recoveryPerSecond <= 0 && this.inkRecoveryPerSecond <= 0) return;
 
-    const obstacleHealth = this.owner?.getComponent(Health);
-    if (!obstacleHealth || obstacleHealth.isDead()) return;
+    const shelterHealth = this.owner?.getComponent(Health);
+    if (!shelterHealth || shelterHealth.isDead()) return;
 
     for (const playerCollider of this.playerContacts) {
       const player = playerCollider.owner;
@@ -70,14 +74,10 @@ export class Obstacle implements Component {
         continue;
       }
 
-      const playerHealth = player.getComponent(Health);
-      if (!playerHealth || playerHealth.getCurrent() >= playerHealth.getMax()) continue;
+      const recoveredHealth = this.recoverPlayerHealth(player, shelterHealth, dt);
+      const recoveredInk = this.recoverPlayerInk(player, shelterHealth, dt);
 
-      const requestedRecover = Math.min(this.recoveryPerSecond * dt, obstacleHealth.getCurrent());
-      const recovered = playerHealth.recover(requestedRecover);
-      obstacleHealth.applyDamage(recovered);
-
-      if (obstacleHealth.isDead()) {
+      if (recoveredHealth + recoveredInk > 0 && shelterHealth.isDead()) {
         this.destroy();
         return;
       }
@@ -109,5 +109,29 @@ export class Obstacle implements Component {
   private addPlayerContact(other: Collider): void {
     if (other.layer !== "player") return;
     this.playerContacts.add(other);
+  }
+
+  private recoverPlayerHealth(player: GameObject, shelterHealth: Health, dt: number): number {
+    if (this.recoveryPerSecond <= 0) return 0;
+
+    const playerHealth = player.getComponent(Health);
+    if (!playerHealth || playerHealth.getCurrent() >= playerHealth.getMax()) return 0;
+
+    const requestedRecover = Math.min(this.recoveryPerSecond * dt, shelterHealth.getCurrent());
+    const recovered = playerHealth.recover(requestedRecover);
+    shelterHealth.applyDamage(recovered);
+    return recovered;
+  }
+
+  private recoverPlayerInk(player: GameObject, shelterHealth: Health, dt: number): number {
+    if (this.inkRecoveryPerSecond <= 0) return 0;
+
+    const playerInk = player.getComponent(PlayerInk);
+    if (!playerInk || playerInk.getCurrent() >= playerInk.getMax()) return 0;
+
+    const requestedRecover = Math.min(this.inkRecoveryPerSecond * dt, shelterHealth.getCurrent());
+    const recovered = playerInk.recover(requestedRecover);
+    shelterHealth.applyDamage(recovered);
+    return recovered;
   }
 }

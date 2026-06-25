@@ -2,6 +2,7 @@ import type { GameStage } from "../stage/demoStage";
 import type { GameWorld } from "./createGameWorld";
 import type { GameObject } from "../scene/gameObject";
 import { Health, type HealthSnapshot } from "../scene/health";
+import { PlayerInk, type PlayerInkSnapshot } from "../scene/playerInk";
 import { RigidBody } from "../scene/rigidBody";
 
 export type Vec3Snapshot = [number, number, number];
@@ -17,12 +18,13 @@ export type GameObjectSnapshot = {
   localScale: Vec3Snapshot;
   velocity?: Vec3Snapshot;
   health?: HealthSnapshot;
+  ink?: PlayerInkSnapshot;
 };
 
 export type StageSnapshot = {
   player: GameObjectSnapshot;
   enemies: GameObjectSnapshot[];
-  obstacles: GameObjectSnapshot[];
+  shelters: GameObjectSnapshot[];
   streams: GameObjectSnapshot[];
 };
 
@@ -40,7 +42,7 @@ export function createStageSnapshot(stage: GameStage): StageSnapshot {
   return {
     player: createGameObjectSnapshot(stage.player),
     enemies: stage.enemies.map(createGameObjectSnapshot),
-    obstacles: stage.obstacles.map(createGameObjectSnapshot),
+    shelters: stage.shelters.map(createGameObjectSnapshot),
     streams: stage.streams.map(createGameObjectSnapshot),
   };
 }
@@ -48,6 +50,7 @@ export function createStageSnapshot(stage: GameStage): StageSnapshot {
 export function createGameObjectSnapshot(obj: GameObject): GameObjectSnapshot {
   const rb = obj.getComponent(RigidBody);
   const health = obj.getComponent(Health);
+  const ink = obj.getComponent(PlayerInk);
 
   return {
     id: obj.id,
@@ -60,6 +63,7 @@ export function createGameObjectSnapshot(obj: GameObject): GameObjectSnapshot {
     localScale: toVec3Snapshot(obj.transform.scale),
     velocity: rb ? toVec3Snapshot(rb.velocity) : undefined,
     health: health?.getSnapshot(),
+    ink: ink?.getSnapshot(),
   };
 }
 

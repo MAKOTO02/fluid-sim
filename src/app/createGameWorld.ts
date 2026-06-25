@@ -15,12 +15,14 @@ import type { FitToCamera } from "../scene/fitToCamera";
 import { createTextureFromUrl } from "../gl/texture";
 import { UnlitTextureMaterial } from "../scene/materials/unlitTexMaterial";
 import type { StreamSource } from "../fluid/streamSource";
+import type { StreamFieldMap } from "../fluid/streamFieldMap";
 
 export type GameWorld = {
   scene: Scene;
   renderer: Renderer;
   stage: GameStage;
   player: GameObject;
+  streamFieldMap: StreamFieldMap;
   debugTextureMap: DebugTextureMap;
   dyeVisualMaterial: DyeVisualMaterial;
   fitter: FitToCamera;
@@ -33,8 +35,9 @@ export function createGameWorld(args: {
   renderAssets: RenderAssets;
   bulletStreamTexture: WebGLTexture;
   bulletStreamSource: StreamSource;
+  streamFieldMap: StreamFieldMap;
   input: GameInput;
-  onObstacleChanged?: () => void;
+  onShelterChanged?: () => void;
 }): GameWorld {
   const {
     gl,
@@ -43,8 +46,9 @@ export function createGameWorld(args: {
     renderAssets,
     bulletStreamTexture,
     bulletStreamSource,
+    streamFieldMap,
     input,
-    onObstacleChanged,
+    onShelterChanged,
   } = args;
 
   const scene = new Scene();
@@ -83,13 +87,15 @@ export function createGameWorld(args: {
     canvas,
     material: renderAssets.materials.player,
     playerVisualMaterial,
-    obstacleMaterial: renderAssets.obstacleMaterial,
+    inkZoneMaterial: renderAssets.inkZoneMaterial,
+    shelterMaterial: renderAssets.shelterMaterial,
     unlitTexProgram: renderAssets.unlitTexProgram,
     bulletStreamTexture,
     bulletStreamSource,
+    streamFieldMap,
     fluidSim,
     input,
-    onObstacleChanged,
+    onShelterChanged,
   });
 
   const debugTextureMap = createDebugTextureMap({
@@ -107,6 +113,7 @@ export function createGameWorld(args: {
     renderer,
     stage,
     player: stage.player,
+    streamFieldMap,
     debugTextureMap,
     dyeVisualMaterial,
     fitter,
