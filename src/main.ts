@@ -8,6 +8,7 @@ import { createBlit } from "./gl/frameBuffer";
 import { createFluidShaderPrograms } from "./fluid/fluidShaders";
 import { createFluidSim } from "./fluid/createFluidSim";
 import { bakeBulletVectorField } from "./fluid/bulletStreamField";
+import { DEFAULT_BULLET_STREAM_SOURCE } from "./fluid/streamSource";
 import { InputController } from "./input/inputController";
 import { DebugPanel } from "./debug/debugPanel";
 import { DebugToggleButton } from "./debug/debugToggleButton";
@@ -60,7 +61,14 @@ new DebugToggleButton({
   },
 });
 
-const bulletStreamTexture = bakeBulletVectorField(gl, shaderLib, blit, resolver);
+const bulletStreamSource = DEFAULT_BULLET_STREAM_SOURCE;
+const bulletStreamTexture = bakeBulletVectorField(
+  gl,
+  shaderLib,
+  blit,
+  resolver,
+  bulletStreamSource
+);
 
 // Reset GL state.
 gl.bindFramebuffer(gl.FRAMEBUFFER, null); 
@@ -85,6 +93,7 @@ const world = createGameWorld({
   fluidSim,
   renderAssets,
   bulletStreamTexture,
+  bulletStreamSource,
   input: inputController,
   onObstacleChanged: requestObstacleTargetUpdate,
 });
@@ -134,6 +143,7 @@ function updateFrame(dt: number) {
 
   const snapshot = createWorldSnapshot(world);
   gameUi.setPlayerHealth(snapshot.stage.player.health);
+  gameUi.setEnemyHealth(snapshot.stage.enemies);
   debugPanel.setText(formatWorldSnapshot(snapshot));
 
   if (gameController.getState() === "playing") {

@@ -12,6 +12,9 @@ import { SceneLayers } from "../scene/layers";
 import { createQuad } from "../scene/primitives";
 import type { DyeVisualMaterial } from "../scene/materials/dyeVisualMaterial";
 import type { FitToCamera } from "../scene/fitToCamera";
+import { createTextureFromUrl } from "../gl/texture";
+import { UnlitTextureMaterial } from "../scene/materials/unlitTexMaterial";
+import type { StreamSource } from "../fluid/streamSource";
 
 export type GameWorld = {
   scene: Scene;
@@ -29,10 +32,20 @@ export function createGameWorld(args: {
   fluidSim: FluidSim;
   renderAssets: RenderAssets;
   bulletStreamTexture: WebGLTexture;
+  bulletStreamSource: StreamSource;
   input: GameInput;
   onObstacleChanged?: () => void;
 }): GameWorld {
-  const { gl, canvas, fluidSim, renderAssets, bulletStreamTexture, input, onObstacleChanged } = args;
+  const {
+    gl,
+    canvas,
+    fluidSim,
+    renderAssets,
+    bulletStreamTexture,
+    bulletStreamSource,
+    input,
+    onObstacleChanged,
+  } = args;
 
   const scene = new Scene();
   const renderer = new Renderer(gl);
@@ -55,14 +68,25 @@ export function createGameWorld(args: {
     layer: SceneLayers.default,
   });
 
+  const playerTexture = createTextureFromUrl(
+    gl,
+    `${import.meta.env.BASE_URL}assets/player-ring.png`
+  );
+  const playerVisualMaterial = new UnlitTextureMaterial(
+    renderAssets.unlitTexProgram,
+    playerTexture
+  );
+
   const stage = createDemoStage({
     scene,
     gl,
     canvas,
     material: renderAssets.materials.player,
+    playerVisualMaterial,
     obstacleMaterial: renderAssets.obstacleMaterial,
     unlitTexProgram: renderAssets.unlitTexProgram,
     bulletStreamTexture,
+    bulletStreamSource,
     fluidSim,
     input,
     onObstacleChanged,

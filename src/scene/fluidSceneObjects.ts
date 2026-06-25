@@ -15,9 +15,11 @@ import { UnlitTextureMaterial } from "./materials/unlitTexMaterial";
 import { BoxCollider } from "./collider";
 import { Health } from "./health";
 import { Obstacle } from "./obstacle";
+import type { StreamSource } from "../fluid/streamSource";
+import { StreamSourceComponent } from "./streamSourceComponent";
 
-const OBSTACLE_HEALTH = 100;
-const OBSTACLE_RECOVERY_PER_SECOND = 10;
+const OBSTACLE_HEALTH = 200;
+const OBSTACLE_RECOVERY_PER_SECOND = 25;
 
 export type FluidPlaneObject = {
   fluidPlane: GameObject;
@@ -84,13 +86,15 @@ export function createStreamObject(args: {
   gl: WebGLRenderingContext | WebGL2RenderingContext;
   program: Program;
   texture: WebGLTexture;
+  source: StreamSource;
   layer: number;
 }): GameObject {
-  const { scene, gl, program, texture, layer } = args;
+  const { scene, gl, program, texture, source, layer } = args;
 
   const streamMesh = createQuad(9);
   const streamObj = new GameObject("stream");
   const streamTexMaterial = new UnlitTextureMaterial(program, texture);
+  streamObj.addComponent(new StreamSourceComponent(source));
   streamObj.addComponent(new MeshFilter(streamMesh));
   streamObj.addComponent(new MeshRenderer(gl, streamTexMaterial));
   streamObj.layer = layer;

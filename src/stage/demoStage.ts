@@ -13,6 +13,7 @@ import { createPlayer } from "../scene/playerFactory";
 import { PlayerShooting } from "../scene/playerShooting";
 import { createQuad } from "../scene/primitives";
 import type { Scene } from "../scene/scene";
+import type { StreamSource } from "../fluid/streamSource";
 
 export type GameStage = {
   player: GameObject;
@@ -26,9 +27,11 @@ export function createDemoStage(args: {
   gl: WebGLRenderingContext | WebGL2RenderingContext;
   canvas: HTMLCanvasElement;
   material: IMaterial;
+  playerVisualMaterial: IMaterial;
   obstacleMaterial: IMaterial;
   unlitTexProgram: Program;
   bulletStreamTexture: WebGLTexture;
+  bulletStreamSource: StreamSource;
   fluidSim: FluidSim;
   input: GameInput;
   onObstacleChanged?: () => void;
@@ -38,9 +41,11 @@ export function createDemoStage(args: {
     gl,
     canvas,
     material,
+    playerVisualMaterial,
     obstacleMaterial,
     unlitTexProgram,
     bulletStreamTexture,
+    bulletStreamSource,
     fluidSim,
     input,
     onObstacleChanged,
@@ -61,6 +66,7 @@ export function createDemoStage(args: {
     gl,
     program: unlitTexProgram,
     texture: bulletStreamTexture,
+    source: bulletStreamSource,
     layer: SceneLayers.stream,
   });
 
@@ -68,7 +74,7 @@ export function createDemoStage(args: {
     scene,
     gl,
     canvas,
-    material,
+    visualMaterial: playerVisualMaterial,
     fluidSim,
     input,
   });
