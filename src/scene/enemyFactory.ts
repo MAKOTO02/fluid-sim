@@ -9,6 +9,7 @@ import type { Scene } from "./scene";
 import type { Transform } from "./transform";
 import { setupEnemyStrategyFactories } from "./enemyStrategy";
 import type { InkZoneRegistry } from "./inkZoneRegistry";
+import type { EnemyTypeId } from "./enemyConfig";
 
 export function createDemoEnemy(args: {
   scene: Scene;
@@ -18,14 +19,28 @@ export function createDemoEnemy(args: {
   fluidSim: FluidSim;
   target: Transform;
   inkZoneRegistry?: InkZoneRegistry;
+  typeId?: EnemyTypeId;
+  name?: string;
+  centerPosition?: [number, number, number];
 }): GameObject {
-  const { scene, gl, canvas, material, fluidSim, target, inkZoneRegistry } = args;
+  const {
+    scene,
+    gl,
+    canvas,
+    material,
+    fluidSim,
+    target,
+    inkZoneRegistry,
+    typeId = "simple",
+    name = "Enemy",
+    centerPosition = [1, 1, 0],
+  } = args;
 
   const enemyCenter = new GameObject();
-  enemyCenter.transform.translate(vec3.fromValues(1, 1, 0));
+  enemyCenter.transform.translate(vec3.fromValues(...centerPosition));
   scene.addObject(enemyCenter);
 
-  const enemy = new GameObject("Enemy");
+  const enemy = new GameObject(name);
   enemy.transform.setParent(enemyCenter.transform);
   enemy.addComponent(new LocalPathMover((t) => {
     return { x: Math.cos(t), y: Math.sin(t), z: 0 };
@@ -40,7 +55,7 @@ export function createDemoEnemy(args: {
   };
   setupEnemyStrategyFactories(ctx);
 
-  const enemyComp = new Enemy(0, ctx, undefined, inkZoneRegistry);
+  const enemyComp = new Enemy(typeId, ctx, name, inkZoneRegistry);
   enemyComp.setTarget(target);
   enemy.addComponent(new Health(enemyComp.config.hitPoint));
   enemy.addComponent(enemyComp);

@@ -14,8 +14,8 @@ import type { DyeVisualMaterial } from "../scene/materials/dyeVisualMaterial";
 import type { FitToCamera } from "../scene/fitToCamera";
 import { createTextureFromUrl } from "../gl/texture";
 import { UnlitTextureMaterial } from "../scene/materials/unlitTexMaterial";
-import type { StreamSource } from "../fluid/streamSource";
 import type { StreamFieldMap } from "../fluid/streamFieldMap";
+import type { StageDefinition } from "../stage/stageDefinition";
 
 export type GameWorld = {
   scene: Scene;
@@ -34,8 +34,8 @@ export function createGameWorld(args: {
   fluidSim: FluidSim;
   renderAssets: RenderAssets;
   bulletStreamTexture: WebGLTexture;
-  bulletStreamSource: StreamSource;
   streamFieldMap: StreamFieldMap;
+  stageDefinition: StageDefinition;
   input: GameInput;
   onShelterChanged?: () => void;
 }): GameWorld {
@@ -45,8 +45,8 @@ export function createGameWorld(args: {
     fluidSim,
     renderAssets,
     bulletStreamTexture,
-    bulletStreamSource,
     streamFieldMap,
+    stageDefinition,
     input,
     onShelterChanged,
   } = args;
@@ -91,10 +91,10 @@ export function createGameWorld(args: {
     shelterMaterial: renderAssets.shelterMaterial,
     unlitTexProgram: renderAssets.unlitTexProgram,
     bulletStreamTexture,
-    bulletStreamSource,
     streamFieldMap,
     fluidSim,
     input,
+    definition: stageDefinition,
     onShelterChanged,
   });
 

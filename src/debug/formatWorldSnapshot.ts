@@ -9,6 +9,7 @@ export function formatWorldSnapshot(snapshot: WorldSnapshot): string {
 
   return [
     "World Snapshot",
+    `Stage Time: ${formatNumber(stage.elapsed)}s${formatNextEvent(stage.nextEventAt)}`,
     "",
     `Player: ${formatObject(stage.player)}`,
     `Enemies: ${stage.enemies.length}`,
@@ -18,6 +19,11 @@ export function formatWorldSnapshot(snapshot: WorldSnapshot): string {
     `Streams: ${stage.streams.length}`,
     ...stage.streams.map((stream) => `  ${formatObject(stream)}`),
   ].join("\n");
+}
+
+function formatNextEvent(nextEventAt: number | undefined) {
+  if (nextEventAt == null) return "";
+  return ` next=${formatNumber(nextEventAt)}s`;
 }
 
 function formatObject(obj: GameObjectSnapshot) {

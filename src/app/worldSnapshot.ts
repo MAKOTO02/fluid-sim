@@ -22,6 +22,8 @@ export type GameObjectSnapshot = {
 };
 
 export type StageSnapshot = {
+  elapsed: number;
+  nextEventAt?: number;
   player: GameObjectSnapshot;
   enemies: GameObjectSnapshot[];
   shelters: GameObjectSnapshot[];
@@ -39,7 +41,11 @@ export function createWorldSnapshot(world: GameWorld): WorldSnapshot {
 }
 
 export function createStageSnapshot(stage: GameStage): StageSnapshot {
+  const nextEvent = stage.eventProcessor.getNextTimeEvent();
+
   return {
+    elapsed: stage.eventProcessor.getElapsed(),
+    nextEventAt: nextEvent?.trigger.type === "time" ? nextEvent.trigger.at : undefined,
     player: createGameObjectSnapshot(stage.player),
     enemies: stage.enemies.map(createGameObjectSnapshot),
     shelters: stage.shelters.map(createGameObjectSnapshot),

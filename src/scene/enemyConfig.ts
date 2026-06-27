@@ -28,8 +28,10 @@ export type FireContext = {
   fluid: FluidSim;
 };
 
+export type EnemyTypeId = "simple";
+
 export type EnemyConfig = {
-  id: number,
+  id: EnemyTypeId,
   hitPoint: number;
   contactDamagePerSecond: number;
   inkDamagePerSecond: number;
@@ -41,12 +43,12 @@ export type EnemyConfig = {
   createStrategy?: (ctx: FireContext) => IEnemyStrategy;
 };
 
-export const enemyConfigs = new Map<number, EnemyConfig>();
+export const enemyCatalog = new Map<EnemyTypeId, EnemyConfig>();
 
 const ENEMY_BULLET_DAMAGE = 10;
 
 const simpleEnemyConfig: EnemyConfig = {
-  id: 0,
+  id: "simple",
   hitPoint: 10,
   contactDamagePerSecond: 12,
   inkDamagePerSecond: 2,
@@ -133,8 +135,16 @@ const simpleEnemyConfig: EnemyConfig = {
   },
 };
 
-export function setupEnemyConfigs(materials: GameMaterials) {
+export function getEnemyConfig(typeId: EnemyTypeId): EnemyConfig {
+  const config = enemyCatalog.get(typeId);
+  if (!config) {
+    throw new Error(`EnemyConfig not found for typeId=${typeId}`);
+  }
+  return config;
+}
+
+export function setupEnemyCatalog(materials: GameMaterials) {
   const cfg = { ...simpleEnemyConfig, material: materials.enemySmall };
-  enemyConfigs.set(cfg.id, cfg);
+  enemyCatalog.set(cfg.id, cfg);
 }
 

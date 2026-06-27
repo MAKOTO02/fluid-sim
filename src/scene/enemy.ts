@@ -4,7 +4,7 @@ import type { GameObject } from "./gameObject";
 import { Health } from "./health";
 import { SphereCollider, type Collider } from "./collider";
 import { Projectile } from "./projectile";
-import { type EnemyConfig, enemyConfigs, type FireContext} from "./enemyConfig";
+import { type EnemyConfig, getEnemyConfig, type FireContext, type EnemyTypeId } from "./enemyConfig";
 import { type IEnemyStrategy, defaultEnemyStrategy } from "./enemyStrategy";
 import type { InkZoneRegistry } from "./inkZoneRegistry";
 import type { Transform } from "./transform";
@@ -31,11 +31,8 @@ export class Enemy implements Component {
   private readonly inkZoneRegistry?: InkZoneRegistry;
   target?: Transform;
 
-  constructor(typeId: number, ctx: FireContext, name?: string, inkZoneRegistry?: InkZoneRegistry){
-    const cfg = enemyConfigs.get(typeId);
-    if (!cfg) {
-      throw new Error(`EnemyConfig not found for typeId=${typeId}`);
-    }
+  constructor(typeId: EnemyTypeId, ctx: FireContext, name?: string, inkZoneRegistry?: InkZoneRegistry){
+    const cfg = getEnemyConfig(typeId);
     this.config = cfg;
     this.name = name ?? "enemy";
     this.inkZoneRegistry = inkZoneRegistry;

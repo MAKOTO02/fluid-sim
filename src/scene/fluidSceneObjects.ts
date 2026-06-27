@@ -17,10 +17,7 @@ import { Health } from "./health";
 import { Shelter } from "./shelter";
 import type { StreamSource } from "../fluid/streamSource";
 import { StreamSourceComponent } from "./streamSourceComponent";
-
-const SHELTER_HEALTH = 200;
-const SHELTER_RECOVERY_PER_SECOND = 25;
-const SHELTER_INK_RECOVERY_PER_SECOND = 35;
+import type { ShelterConfig } from "../stage/shelterCatalog";
 
 export type FluidPlaneObject = {
   fluidPlane: GameObject;
@@ -60,24 +57,26 @@ export function createShelterObject(args: {
   gl: WebGLRenderingContext | WebGL2RenderingContext;
   mesh: Mesh;
   material: IMaterial;
+  config: ShelterConfig;
+  position: [number, number, number];
   layer: number;
   onShelterChanged?: () => void;
 }): GameObject {
-  const { scene, gl, mesh, material, layer, onShelterChanged } = args;
+  const { scene, gl, mesh, material, config, position, layer, onShelterChanged } = args;
 
-  const shelter = new GameObject("shelter");
+  const shelter = new GameObject(config.name);
   shelter.layer = layer;
   shelter.addComponent(new MeshFilter(mesh));
   shelter.addComponent(new MeshRenderer(gl, material));
-  shelter.addComponent(new BoxCollider(scene, vec3.fromValues(0.5, 0.5, 0.05), "wall", true));
-  shelter.addComponent(new Health(SHELTER_HEALTH));
+  shelter.addComponent(new BoxCollider(scene, vec3.fromValues(...config.colliderHalfExtents), "wall", true));
+  shelter.addComponent(new Health(config.health));
   shelter.addComponent(new Shelter({
     onDestroyed: onShelterChanged,
-    recoveryPerSecond: SHELTER_RECOVERY_PER_SECOND,
-    inkRecoveryPerSecond: SHELTER_INK_RECOVERY_PER_SECOND,
+    recoveryPerSecond: config.recoveryPerSecond,
+    inkRecoveryPerSecond: config.inkRecoveryPerSecond,
   }));
-  shelter.transform.setScale(vec3.fromValues(0.5, 0.5, 0.5));
-  shelter.transform.translate(vec3.fromValues(-2, -1.5, 0));
+  shelter.transform.setScale(vec3.fromValues(...config.visualScale));
+  shelter.transform.translate(vec3.fromValues(...position));
 
   scene.addObject(shelter);
   return shelter;

@@ -11,6 +11,7 @@ import type { Scene } from "./scene";
 
 export type ProjectileInkTrailConfig = {
   intervalSec: number;
+  startDelaySec?: number;
   inkCost: number;
   maxZones: number;
   zoneConfig: Partial<InkZoneConfig>;
@@ -28,6 +29,7 @@ export class ProjectileInkTrail implements Component {
   private readonly playerInk: PlayerInk;
   private readonly config: ProjectileInkTrailConfig;
   private elapsed = 0;
+  private age = 0;
   private spawnedZones = 0;
 
   constructor(args: {
@@ -51,6 +53,9 @@ export class ProjectileInkTrail implements Component {
   update(dt: number): void {
     if (!this.owner) return;
     if (this.spawnedZones >= this.config.maxZones) return;
+
+    this.age += dt;
+    if (this.age < (this.config.startDelaySec ?? 0)) return;
 
     this.elapsed += dt;
     while (this.elapsed >= this.config.intervalSec && this.spawnedZones < this.config.maxZones) {

@@ -1,7 +1,7 @@
 import { GameLoop, type FrameCallback } from "./gameLoop";
 import { StateMachine, type StateMachineListener } from "./stateMachine";
 
-export type GameState = "title" | "playing" | "paused" | "cleared" | "gameOver";
+export type GameState = "title" | "stageSelect" | "playing" | "paused" | "cleared" | "gameOver";
 export type GameStateListener = StateMachineListener<GameState>;
 
 export type GameControllerOptions = {
@@ -14,10 +14,11 @@ export class GameController {
   private readonly gameLoop: GameLoop;
   private readonly onStart?: () => void;
   private readonly stateMachine = new StateMachine<GameState>("title", {
-    title: ["playing"],
+    title: ["stageSelect"],
+    stageSelect: ["title", "playing"],
     playing: ["paused", "title", "cleared", "gameOver"],
     paused: ["playing", "title"],
-    cleared: ["title"],
+    cleared: ["title", "stageSelect"],
     gameOver: ["title"],
   });
 
@@ -32,6 +33,11 @@ export class GameController {
     this.onStart?.();
     this.gameLoop.start();
     this.stateMachine.transitionTo("playing");
+  }
+
+  showStageSelect() {
+    this.gameLoop.stop();
+    this.stateMachine.transitionTo("stageSelect");
   }
 
   returnToTitle() {

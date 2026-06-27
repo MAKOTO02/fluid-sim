@@ -16,6 +16,7 @@ import type { StreamFieldMap } from "../fluid/streamFieldMap";
 
 const MAX_ACTIVE_PLAYER_BULLETS = 10;
 const PLAYER_BULLET_INK_TRAIL_INTERVAL_SEC = 0.08;
+const PLAYER_BULLET_INK_TRAIL_START_DELAY_SEC = 0.18;
 const PLAYER_BULLET_INK_ZONE_COST = 0.1;
 const PLAYER_BULLET_MAX_INK_ZONES = 20;
 
@@ -116,6 +117,7 @@ export class PlayerShooting implements Component {
       playerInk,
       config: {
         intervalSec: PLAYER_BULLET_INK_TRAIL_INTERVAL_SEC,
+        startDelaySec: PLAYER_BULLET_INK_TRAIL_START_DELAY_SEC,
         inkCost: PLAYER_BULLET_INK_ZONE_COST,
         maxZones: PLAYER_BULLET_MAX_INK_ZONES,
         zoneConfig: {
