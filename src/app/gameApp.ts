@@ -17,6 +17,7 @@ import { ShaderLibrary } from "../scene/shaderLibrary";
 import { demoStageDefinition, stageDefinitions, type StageDefinition } from "../stage/stageDefinition";
 import { getStageStatus } from "../stage/stageProgress";
 import { GameUi } from "../ui/gameUi";
+import { applyFixedAspectCanvasLayout } from "./canvasLayout";
 import { createGameWorld } from "./createGameWorld";
 import { handleCanvasResize, initializeObstacleTarget, updateFluidFrame } from "./frameUpdate";
 import { GameController } from "./gameController";
@@ -24,13 +25,10 @@ import { createWorldSnapshot } from "./worldSnapshot";
 
 export function startGameApp(): void {
   const canvas = document.querySelector("canvas")!;
-  const dpr = window.devicePixelRatio || 1;
+  const initialLayout = applyFixedAspectCanvasLayout(canvas);
 
-  const displayWidth  = canvas.clientWidth;
-  const displayHeight = canvas.clientHeight;
-
-  canvas.width  = displayWidth  * dpr;
-  canvas.height = displayHeight * dpr;
+  canvas.width = initialLayout.pixelWidth;
+  canvas.height = initialLayout.pixelHeight;
 
   const { gl, ext } = getWebGLContext(canvas);
   if (!gl) throw new Error("WebGL RenderingContext not found.");
@@ -38,8 +36,8 @@ export function startGameApp(): void {
   const shaderLib = new ShaderLibrary(gl);
   const inputController = new InputController({ pointerTarget: canvas });
   const debugPanel = new DebugPanel();
-  const renderAssets = createRenderAssets(shaderLib);
-  setupEnemyCatalog(renderAssets.materials);
+  const renderAssets = createRenderAssets(shaderLib, gl);
+  setupEnemyCatalog(renderAssets);
 
   const blit = createBlit(gl);
 

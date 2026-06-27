@@ -10,12 +10,14 @@ import type { Transform } from "./transform";
 import { setupEnemyStrategyFactories } from "./enemyStrategy";
 import type { InkZoneRegistry } from "./inkZoneRegistry";
 import type { EnemyTypeId } from "./enemyConfig";
+import type { ProjectileMaterialKey } from "./projectileDefinition";
 
 export function createDemoEnemy(args: {
   scene: Scene;
   gl: WebGLRenderingContext | WebGL2RenderingContext;
   canvas: HTMLCanvasElement;
   material: IMaterial;
+  projectileMaterials: Record<ProjectileMaterialKey, IMaterial>;
   fluidSim: FluidSim;
   target: Transform;
   inkZoneRegistry?: InkZoneRegistry;
@@ -28,6 +30,7 @@ export function createDemoEnemy(args: {
     gl,
     canvas,
     material,
+    projectileMaterials,
     fluidSim,
     target,
     inkZoneRegistry,
@@ -51,6 +54,7 @@ export function createDemoEnemy(args: {
     scene,
     canvas,
     material,
+    projectileMaterials,
     fluid: fluidSim,
   };
   setupEnemyStrategyFactories(ctx);

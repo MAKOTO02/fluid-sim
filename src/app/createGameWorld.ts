@@ -86,6 +86,7 @@ export function createGameWorld(args: {
     gl,
     canvas,
     material: renderAssets.materials.player,
+    projectileMaterials: renderAssets.projectileMaterials,
     playerVisualMaterial,
     inkZoneMaterial: renderAssets.inkZoneMaterial,
     shelterMaterial: renderAssets.shelterMaterial,

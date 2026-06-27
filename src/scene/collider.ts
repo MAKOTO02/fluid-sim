@@ -3,7 +3,13 @@ import type { GameObject } from "./gameObject";
 import type { Scene } from "./scene";
 import { vec3 } from "gl-matrix";
 
-export type CollisionLayer = "player" | "enemy" | "playerBullet" | "enemyBullet" | "wall";
+export type CollisionLayer =
+  | "player"
+  | "enemy"
+  | "playerBullet"
+  | "enemyBullet"
+  | "enemyHazardBullet"
+  | "wall";
 
 export interface Collider extends Component {
   layer: CollisionLayer;

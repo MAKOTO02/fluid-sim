@@ -29,7 +29,7 @@ export function setupEnemyStrategyFactories(ctx: FireContext) {
   // FixedInterval owns a timer, so create a fresh instance each time.
   enemyStrategyFactories.set(
     EnemyStrategies.FixedInterval,
-    () => new FixedIntervalFireStrategy(ctx, 0.5)
+    () => new FixedIntervalFireStrategy(ctx)
   );
 }
 
@@ -45,13 +45,11 @@ export const defaultEnemyStrategy: IEnemyStrategy = {
 };
 
 export class FixedIntervalFireStrategy implements IEnemyStrategy {
-  private timer = 0;
-  private readonly interval: number;
+  private readonly timers: number[] = [];
   private readonly ctx: FireContext;
 
-  constructor(ctx: FireContext, interval: number) {
+  constructor(ctx: FireContext) {
     this.ctx = ctx;
-    this.interval = Math.max(interval, 0.1);
   }
 
   update(enemy: Enemy, dt: number): void {
@@ -60,16 +58,20 @@ export class FixedIntervalFireStrategy implements IEnemyStrategy {
       enemy.owner?.destroy();
     }
 
-    const config = enemy.config;
-    if (!config || !config.fire) {
+    const attacks = enemy.config.attacks;
+    if (attacks.length === 0) {
       return;
     }
 
-    this.timer += dt;
-    if (this.timer >= this.interval) {
-      console.log("fire");
-      this.timer -= this.interval;
-      config.fire(this.ctx, enemy);
+    for (let i = 0; i < attacks.length; i += 1) {
+      const attack = attacks[i];
+      const interval = Math.max(attack.intervalSec, 0.1);
+      this.timers[i] = (this.timers[i] ?? 0) + dt;
+
+      if (this.timers[i] >= interval) {
+        this.timers[i] -= interval;
+        attack.fire(this.ctx, enemy);
+      }
     }
   }
 }

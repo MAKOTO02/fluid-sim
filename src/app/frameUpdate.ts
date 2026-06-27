@@ -3,6 +3,7 @@ import type { Renderer } from "../scene/renderer";
 import type { Scene } from "../scene/scene";
 import type { FitToCamera } from "../scene/fitToCamera";
 import type { DyeVisualMaterial } from "../scene/materials/dyeVisualMaterial";
+import { applyFixedAspectCanvasLayout } from "./canvasLayout";
 
 export function initializeObstacleTarget(args: {
   gl: WebGLRenderingContext | WebGL2RenderingContext;
@@ -89,14 +90,10 @@ export function updateFluidFrame(args: {
   renderer.render(scene, cam);
 }
 
-function scaleByPixelRatio(input: number): number {
-  const pixelRatio = window.devicePixelRatio || 1;
-  return Math.floor(input * pixelRatio);
-}
-
 function resizeCanvas(canvas: HTMLCanvasElement): boolean {
-  const width = scaleByPixelRatio(canvas.clientWidth);
-  const height = scaleByPixelRatio(canvas.clientHeight);
+  const layout = applyFixedAspectCanvasLayout(canvas);
+  const width = layout.pixelWidth;
+  const height = layout.pixelHeight;
   if (canvas.width !== width || canvas.height !== height) {
     canvas.width = width;
     canvas.height = height;

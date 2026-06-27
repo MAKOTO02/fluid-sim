@@ -9,6 +9,7 @@ import {
 import { GameObject } from "../scene/gameObject";
 import type { IMaterial } from "../scene/material";
 import { createDemoEnemy } from "../scene/enemyFactory";
+import type { ProjectileMaterialKey } from "../scene/projectileDefinition";
 import { SceneLayers } from "../scene/layers";
 import { createPlayer } from "../scene/playerFactory";
 import { PlayerShooting } from "../scene/playerShooting";
@@ -40,6 +41,7 @@ export function createDemoStage(args: {
   gl: WebGLRenderingContext | WebGL2RenderingContext;
   canvas: HTMLCanvasElement;
   material: IMaterial;
+  projectileMaterials: Record<ProjectileMaterialKey, IMaterial>;
   playerVisualMaterial: IMaterial;
   inkZoneMaterial: IMaterial;
   shelterMaterial: IMaterial;
@@ -56,6 +58,7 @@ export function createDemoStage(args: {
     gl,
     canvas,
     material,
+    projectileMaterials,
     playerVisualMaterial,
     inkZoneMaterial,
     shelterMaterial,
@@ -127,6 +130,7 @@ export function createDemoStage(args: {
       gl,
       canvas,
       material,
+      projectileMaterials,
       fluidSim,
       target: player.transform,
       inkZoneRegistry,
