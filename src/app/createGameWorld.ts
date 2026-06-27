@@ -4,7 +4,7 @@ import type { GameInput } from "../input/inputController";
 import { Renderer } from "../scene/renderer";
 import type { RenderAssets } from "../scene/renderAssets";
 import type { GameObject } from "../scene/gameObject";
-import { createDemoStage, type GameStage } from "../stage/demoStage";
+import { createGameStage, type GameStage } from "../stage/gameStageFactory";
 import { Scene } from "../scene/scene";
 import { createMainCamera } from "../scene/cameraObject";
 import { createFluidPlaneObject } from "../scene/fluidSceneObjects";
@@ -81,7 +81,7 @@ export function createGameWorld(args: {
     playerTexture
   );
 
-  const stage = createDemoStage({
+  const stage = createGameStage({
     scene,
     gl,
     canvas,

@@ -1,5 +1,5 @@
 import { Health } from "../scene/health";
-import type { GameStage } from "./demoStage";
+import type { GameStage } from "./gameStageFactory";
 
 export type StageStatus = "playing" | "cleared" | "failed";
 

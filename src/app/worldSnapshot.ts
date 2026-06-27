@@ -1,4 +1,4 @@
-import type { GameStage } from "../stage/demoStage";
+import type { GameStage } from "../stage/gameStageFactory";
 import type { GameWorld } from "./createGameWorld";
 import type { GameObject } from "../scene/gameObject";
 import { Health, type HealthSnapshot } from "../scene/health";

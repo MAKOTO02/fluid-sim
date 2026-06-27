@@ -21,7 +21,7 @@ import { HazardEmitter } from "../scene/hazardEmitter";
 import { InkZoneRegistry } from "../scene/inkZoneRegistry";
 import { getHazardEmitterConfig } from "./hazardEmitterCatalog";
 import { getShelterConfig } from "./shelterCatalog";
-import { demoStageDefinition, type StageDefinition } from "./stageDefinition";
+import type { StageDefinition } from "./stageDefinition";
 import { StageEventProcessor } from "./stageEventProcessor";
 
 export type GameStage = {
@@ -36,7 +36,7 @@ export type GameStage = {
   inkZoneRegistry: InkZoneRegistry;
 };
 
-export function createDemoStage(args: {
+export function createGameStage(args: {
   scene: Scene;
   gl: WebGLRenderingContext | WebGL2RenderingContext;
   canvas: HTMLCanvasElement;
@@ -50,7 +50,7 @@ export function createDemoStage(args: {
   streamFieldMap: StreamFieldMap;
   fluidSim: FluidSim;
   input: GameInput;
-  definition?: StageDefinition;
+  definition: StageDefinition;
   onShelterChanged?: () => void;
 }): GameStage {
   const {
@@ -67,7 +67,7 @@ export function createDemoStage(args: {
     streamFieldMap,
     fluidSim,
     input,
-    definition = demoStageDefinition,
+    definition,
     onShelterChanged,
   } = args;
 
